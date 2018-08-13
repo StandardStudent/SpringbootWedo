@@ -33,4 +33,9 @@ public interface RoomRepository extends JpaRepository<UserRoom,Integer> {
     @Query(value = "update sensors s set s.status=?1 where user_room_roomid in (?2)",
             nativeQuery = true)
     void leaveHome(int homeid);
+
+    @Query(value = "select r.* from user_room r where roomid=?1",
+            nativeQuery = true)
+    List<UserRoom> findAllByRoomid(int roomid);
+
 }

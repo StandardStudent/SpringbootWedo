@@ -62,9 +62,9 @@ public class RoomController {
         UserRoom userRoom = new UserRoom(roomName, enable,userHome);
         userRoom.setUserHome(userHome);
         roomService.addRoom(userRoom);
-        User user = roomService.findUser(uid);
+        //User user = roomService.findUser(uid);
         JSONObject jsonObject2 = new JSONObject();
-        jsonObject2.put("uid",user.getUid());
+        jsonObject2.put("roomid",userRoom.getRoomid());
         map.put("type", 1);
         map.put("msg","成功");
         map.put("data", jsonObject2);
@@ -77,10 +77,10 @@ public class RoomController {
     @PostMapping(value = "/was1/wdhome/zhinengjia/findRoom")
     public JSONObject findRoom(@RequestBody JSONObject jsonObject) {
         int roomid = Integer.parseInt(jsonObject.get("roomid").toString());
-        List<UserRoom> userRooms = roomRepository.findAllByhoomid(roomid);
-        String json = JSON.toJSONString(userRooms, SerializerFeature.WriteNullStringAsEmpty);
+        List<Sensor> sensors = sensorRepository.findAllByRoomidInt(roomid);
+        String json = JSON.toJSONString(sensors, SerializerFeature.WriteNullStringAsEmpty);
         JSONArray jsonArray = JSONArray.fromObject(json);
-        map.put("type","1");
+        map.put("type",1);
         map.put("msg","成功");
         map.put("data",jsonArray);
         JSONObject jsonObject1 = JSONObject.fromObject(map);
@@ -233,12 +233,16 @@ public class RoomController {
     public JSONObject changeHome(@RequestBody JSONObject jsonObject) {
         //int uid = Integer.parseInt(jsonObject.get("uid").toString());
         int homeid = Integer.parseInt(jsonObject.get("homeid").toString());
-        List<UserRoom> roomList = roomService.findAllRoomByHomeId(homeid);
-        String json = JSON.toJSONString(roomList);
+        List<UserHome> homes = homeRepository.findAllByhomeId(homeid);
+        String json = JSON.toJSONString(homes);
+        JSONObject jsonObject2 = new JSONObject();
         JSONArray jsonArray = JSONArray.fromObject(json);
-        map.put("type", "1");
+        for (int i=0;i<jsonArray.size();i++){
+            jsonObject2 = jsonArray.getJSONObject(i);
+        }
+        map.put("type", 1);
         map.put("msg","成功");
-        map.put("data", jsonArray);
+        map.put("data", jsonObject2);
         JSONObject jsonObject1 = JSONObject.fromObject(map);
         return jsonObject1;
     }

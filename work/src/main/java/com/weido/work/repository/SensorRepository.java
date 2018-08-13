@@ -24,6 +24,10 @@ public interface SensorRepository extends JpaRepository<Sensor,Integer> {
             nativeQuery = true)
     List<Sensor> findAllByRoomid(String roomid);
 
+    @Query(value = "select s.* from sensors s where s.user_room_roomid=?1",
+            nativeQuery = true)
+    List<Sensor> findAllByRoomidInt(int roomid);
+
 //    @Query(value = "select s.* from sensors s,user_home h,user_room r" +
 //            " where h.users_uid=?1 and h.homeid=?2" +
 //            " and h.homeid=r.user_home_homeid and ")

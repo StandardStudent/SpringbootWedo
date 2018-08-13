@@ -30,6 +30,7 @@ public class Sensor{
     private int parentid;
     private int value;
     private String status;
+    private int collectstatus;
     @ManyToOne(fetch = FetchType.EAGER)
     @JSONField(serialize = false)
     private UserRoom userRoom;
@@ -117,6 +118,14 @@ public class Sensor{
         this.status = status;
     }
 
+    public int getCollectstatus() {
+        return collectstatus;
+    }
+
+    public void setCollectstatus(int collectstatus) {
+        this.collectstatus = collectstatus;
+    }
+
     public Sensor(String sn, String sname, int parentid, int value, String status) {
         this.sn = sn;
         this.sname = sname;
@@ -151,9 +160,12 @@ public class Sensor{
                 ", sn='" + sn + '\'' +
                 ", sname='" + sname + '\'' +
                 ", parentid=" + parentid +
-                ", value='" + value + '\'' +
+                ", value=" + value +
                 ", status='" + status + '\'' +
+                ", collectstatus=" + collectstatus +
                 ", userRoom=" + userRoom +
+                ", sensorsType=" + sensorsType +
+                ", sensorsVendor=" + sensorsVendor +
                 '}';
     }
 }

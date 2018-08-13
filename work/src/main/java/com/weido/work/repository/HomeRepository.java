@@ -11,4 +11,6 @@ public interface HomeRepository extends JpaRepository<UserHome,Integer> {
     List<UserHome> findHomeByUidAndCid(int uid,int cid);
     @Query(value = "select h.* from user_home h where users_uid=?1",nativeQuery = true)
     List<UserHome> findAllByUid(int uid);
+    @Query(value = "select h.* from user_home h where homeid=?1",nativeQuery = true)
+    List<UserHome> findAllByhomeId(int homeid);
 }

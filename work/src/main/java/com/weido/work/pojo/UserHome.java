@@ -27,6 +27,8 @@ public class UserHome{
     private int cid;
     private String address;
     private int post;
+    private String gatewaynumber;
+    private String gatewaypwd;
     @ManyToOne(fetch = FetchType.EAGER)
     @JSONField(serialize = false)
     private User users;
@@ -34,6 +36,8 @@ public class UserHome{
     private List<UserRoom> userRooms;
     @OneToMany(mappedBy = "userHome")
     private List<SceneMine> sceneMines;
+    @OneToMany(mappedBy = "userHome")
+    private List<Member> members;
 
     public UserHome() {
     }
@@ -120,6 +124,30 @@ public class UserHome{
         this.sceneMines = sceneMines;
     }
 
+    public String getGatewaynumber() {
+        return gatewaynumber;
+    }
+
+    public void setGatewaynumber(String gatewaynumber) {
+        this.gatewaynumber = gatewaynumber;
+    }
+
+    public String getGatewaypwd() {
+        return gatewaypwd;
+    }
+
+    public void setGatewaypwd(String gatewaypwd) {
+        this.gatewaypwd = gatewaypwd;
+    }
+
+    public List<Member> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<Member> members) {
+        this.members = members;
+    }
+
     @Override
     public String toString() {
         return "UserHome{" +
@@ -128,6 +156,8 @@ public class UserHome{
                 ", cid=" + cid +
                 ", address='" + address + '\'' +
                 ", post=" + post +
+                ", gatewaynumber='" + gatewaynumber + '\'' +
+                ", gatewaypwd='" + gatewaypwd + '\'' +
                 ", users=" + users +
                 '}';
     }
