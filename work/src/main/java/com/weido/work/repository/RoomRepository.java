@@ -38,4 +38,5 @@ public interface RoomRepository extends JpaRepository<UserRoom,Integer> {
             nativeQuery = true)
     List<UserRoom> findAllByRoomid(int roomid);
 
+
 }

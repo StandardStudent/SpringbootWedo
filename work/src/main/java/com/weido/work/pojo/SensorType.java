@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class SensorType {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int typeid;
     private String name;
     private String description;

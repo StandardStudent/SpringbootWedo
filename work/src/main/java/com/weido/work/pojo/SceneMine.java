@@ -8,7 +8,7 @@ import javax.persistence.*;
 @Table(name = "scene_mine")
 public class SceneMine {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int sm_id;
     private String scene_name;
     private String description;

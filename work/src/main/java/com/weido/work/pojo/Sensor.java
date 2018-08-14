@@ -23,7 +23,7 @@ import java.util.List;
         "sensorsLogs","sensorsControlLogs"})
 public class Sensor{
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int sid;
     private String sn;
     private String sname;
@@ -145,9 +145,14 @@ public class Sensor{
         this.userRoom = userRoom;
     }
 
-    public Sensor(String sname, SensorType sensorsType) {
+    public Sensor(String sn, String sname, UserRoom userRoom) {
+        this.sn = sn;
         this.sname = sname;
-        this.sensorsType = sensorsType;
+        this.userRoom = userRoom;
+    }
+
+    public Sensor(String sname) {
+        this.sname = sname;
     }
 
     public Sensor() {

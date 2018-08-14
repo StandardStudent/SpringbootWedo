@@ -1,9 +1,6 @@
 package com.weido.work.pojo;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.List;
 
 @Entity
@@ -16,6 +13,7 @@ import java.util.List;
  */
 public class SensorVendor {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int svid;
     private String name;
     private String description;

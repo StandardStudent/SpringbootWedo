@@ -87,39 +87,7 @@ public class RoomController {
         return jsonObject1;
     }
 
-    /**
-     * 根据房间名称添加设备
-     *
-     * @param jsonObject
-     */
-    @PostMapping(value = "/addDev")
-    public JSONObject addSensorByRoomName(
-            @RequestBody JSONObject jsonObject
-    ) {
-        UserRoom userRoom = new UserRoom();
-        SensorType sensorType = new SensorType();
-        JSONArray jsonArray = (JSONArray) jsonObject.get("devtype");
-        if (jsonArray.size() > 0) {
-            String typeName;
-            int typeid = 0;
-            for (int i = 0; i < jsonArray.size(); i++) {
-                JSONObject jsonObject1 = JSONObject.fromObject(jsonArray.get(i));
-                System.out.println(jsonObject1);
-                AddDev addDev = (AddDev) JSONObject.toBean(jsonObject1, AddDev.class);
-                typeName = addDev.getTypename();
-                typeid = sensorService.findIdBytypeName(typeName);
-                sensorType.setTypeid(typeid);
-                userRoom.setRoomid(addDev.getRoomid());
-                Sensor sensor = new Sensor("", addDev.getSname(), 0);
-                sensor.setUserRoom(userRoom);
-                sensor.setSensorsType(sensorType);
-                sensorService.addSensor(sensor);
-            }
-        }
-        map.put("type", "success");
-        JSONObject result = JSONObject.fromObject(map);
-        return result;
-    }
+
 
     /**
      * 查询某一个房中所有设备
@@ -268,18 +236,53 @@ public class RoomController {
     @PostMapping(value = "/was1/wdhome/zhinengjia/addSensor")
     public JSONObject addSensor(@RequestBody JSONObject jsonObject){
         int roomid = Integer.parseInt(jsonObject.get("roomid").toString());
+        System.out.println("++++++++++"+roomid);
         String sensorName = jsonObject.get("sname").toString();
-        int typeId = Integer.parseInt(jsonObject.get("typeid").toString());
+        String sn = jsonObject.get("sn").toString();
+
+//        int typeId = Integer.parseInt(jsonObject.get("typeid").toString());
         UserRoom userRoom = new UserRoom();
         userRoom.setRoomid(roomid);
-        SensorType sensorType = new SensorType();
-        sensorType.setTypeid(typeId);
-        Sensor sensor = new Sensor(sensorName,sensorType);
+//        SensorType sensorType = new SensorType();
+//        sensorType.setTypeid(typeId);
+        Sensor sensor = new Sensor(sn,sensorName,userRoom);
         sensorRepository.save(sensor);
-        map.put("type",0);
+        JSONObject jsonObject1 = new JSONObject();
+        jsonObject1.put("sid",sensor.getSid());
+        map.put("type",1);
+        map.put("msg","成功");
+        map.put("data",jsonObject1);
+        return JSONObject.fromObject(map);
+    }
+
+    @PostMapping(value = "/was1/wdhome/zhinengjia/findAllSensor")
+    public JSONObject findAllSensor(@RequestBody JSONObject jsonObject){
+        int homeid = Integer.parseInt(jsonObject.get("homeid").toString());
+        List<Sensor> sensors= sensorRepository.findAllByHomeId(homeid);
+        String json = JSON.toJSONString(sensors);
+        JSONArray jsonArray = JSONArray.fromObject(json);
+        map.put("type",1);
+        map.put("msg","成功");
+        map.put("data",jsonArray);
+        return JSONObject.fromObject(map);
+    }
+
+    @PostMapping(value = "/was1/wdhome/zhinengjia/updateGateway")
+    public JSONObject updateGateway(@RequestBody JSONObject jsonObject){
+        int homeid = Integer.parseInt(jsonObject.get("homeid").toString());
+        String gatewayname = jsonObject.get("gatewayname").toString();
+        String gatewaypwd = jsonObject.get("gatewaypwd").toString();
+        homeRepository.updateGateway(homeid,gatewayname,gatewaypwd);
+        map.put("type","1");
         map.put("msg","成功");
         return JSONObject.fromObject(map);
     }
 
+//    @PostMapping(value = "/was1/wdhome/zhinengjia/collectSensor")
+//    public JSONObject collect(@RequestBody JSONObject jsonObject){
+//        int sid = Integer.parseInt(jsonObject.get("sid").toString());
+//        int collectstatus = Integer.parseInt(jsonObject.get("collect").toString());
+//
+//    }
 
 }

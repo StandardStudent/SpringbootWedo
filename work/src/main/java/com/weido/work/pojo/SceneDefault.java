@@ -8,7 +8,7 @@ import javax.persistence.*;
 @Table(name = "scene_default")
 public class SceneDefault {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int sd_id;
     private int vendorid;
     private String name;

@@ -1,9 +1,6 @@
 package com.weido.work.service;
 
-import com.weido.work.pojo.RoomToSensor;
 import com.weido.work.pojo.Sensor;
-import com.weido.work.pojo.SensorType;
-import com.weido.work.repository.RSRepository;
 import com.weido.work.repository.SensorRepository;
 import com.weido.work.repository.SensorTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +12,6 @@ import java.util.List;
 public class SensorService {
     @Autowired
     SensorRepository sensorRepository;
-    @Autowired
-    RSRepository rsRepository;
     @Autowired
     SensorTypeRepository sensorTypeRepository;
     public List<Sensor> findAllSensor(){

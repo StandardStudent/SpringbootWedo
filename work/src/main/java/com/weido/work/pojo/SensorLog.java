@@ -13,7 +13,7 @@ import java.util.Date;
  */
 public class SensorLog {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int log_id;        //历史id
     private String vendor_log; //传感器原始记录
     private int type_id;       //传感器类型id

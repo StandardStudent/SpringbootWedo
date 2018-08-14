@@ -13,7 +13,7 @@ import java.util.Date;
  */
 public class SensorControlLog {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int  control_id;
     private String log;       //历史
     private Date log_time;    //时间

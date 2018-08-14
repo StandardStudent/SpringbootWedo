@@ -5,6 +5,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import javax.persistence.*;
 
 @Entity
+@Table(name = "member")
 public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

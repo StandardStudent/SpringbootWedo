@@ -13,4 +13,7 @@ public interface HomeRepository extends JpaRepository<UserHome,Integer> {
     List<UserHome> findAllByUid(int uid);
     @Query(value = "select h.* from user_home h where homeid=?1",nativeQuery = true)
     List<UserHome> findAllByhomeId(int homeid);
+    @Query(value = "update user_home set gatewaynumber=?2," +
+            "gatewaypwd=?3 where homeid=?1",nativeQuery = true)
+    void updateGateway(int homeid,String gatewaynumber,String getewaypwd);
 }

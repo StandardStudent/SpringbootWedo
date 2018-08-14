@@ -22,12 +22,12 @@ import java.util.List;
 @JSONType(orders = {"roomid","roomname","enable","png","sensors","userHome"})
 public class UserRoom {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private  Integer roomid;        //房间号
     private  String roomname;       //房间名称
     private  int enable;        //开关状态
     private  String png;            //图片
-    @OneToMany(mappedBy = "userRoom")
+    @OneToMany(mappedBy = "userRoom",cascade = {CascadeType.ALL},fetch = FetchType.EAGER)
     private List<Sensor> sensors;
     @ManyToOne(fetch = FetchType.EAGER)
     @JSONField(serialize = false)
