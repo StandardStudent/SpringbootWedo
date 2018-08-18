@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://192.168.200.102:3306/wd_sensor?characterEncoding=UTF-8
+    username: root
+    password: 789##iop
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
