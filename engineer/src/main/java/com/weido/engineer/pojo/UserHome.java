@@ -32,6 +32,17 @@ public class UserHome{
     @ManyToOne(fetch = FetchType.EAGER)
     @JSONField(serialize = false)
     private Communities communities;
+    @OneToOne(cascade = {CascadeType.PERSIST})
+    private Devs devs;
+
+    public Devs getDevs() {
+        return devs;
+    }
+
+    public void setDevs(Devs devs) {
+        this.devs = devs;
+    }
+
     public UserHome() {
     }
 

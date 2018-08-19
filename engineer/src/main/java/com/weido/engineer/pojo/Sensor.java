@@ -39,6 +39,11 @@ public class Sensor {
     @JSONField(serialize = false)
     private SensorVendor sensorsVendor;
 
+    @ManyToOne
+    @JSONField(serialize = false)
+    private Devs devs;
+
+
 //    @OneToMany(mappedBy = "sensors")
 //    private List<SensorLog> sensorsLogs;
 //    @OneToMany(mappedBy = "sensors")

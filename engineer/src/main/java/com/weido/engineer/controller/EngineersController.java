@@ -144,11 +144,11 @@ public class EngineersController {
         Communities communities = new Communities();
         communities.setCid(cid);
         UserHome userHome = new UserHome("我的家",address,communities);
+        userHome.setDevs(new Devs("",""));
         User user=new User(pid,phone,userName,sex,password,date,1,cal.getTime(), (List<UserHome>) userHome);
         userRepository.save(user);
         map.put("type",1);
-        map.put("msg","成功");
-        map.put("data",0);
+        map.put("msg","开通成功");
         return JSONObject.fromObject(map);
     }
 
