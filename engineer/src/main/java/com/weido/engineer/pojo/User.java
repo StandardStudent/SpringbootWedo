@@ -10,7 +10,7 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int uid;
-    private int pid;
+    private String pid;
     private String mobile;
     private String uname;
     private boolean sex;
@@ -31,11 +31,11 @@ public class User {
         this.uid = uid;
     }
 
-    public int getPid() {
+    public String getPid() {
         return pid;
     }
 
-    public void setPid(int pid) {
+    public void setPid(String pid) {
         this.pid = pid;
     }
 
@@ -122,7 +122,7 @@ public class User {
     public User() {
     }
 
-    public User(int pid, String mobile, String uname, boolean sex, String password, Date registTime, int vipStatus, Date vipExpiration, List<UserHome> userHome) {
+    public User(String pid, String mobile, String uname, boolean sex, String password, Date registTime, int vipStatus, Date vipExpiration) {
         this.pid = pid;
         this.mobile = mobile;
         this.uname = uname;

@@ -3,7 +3,9 @@ package com.weido.engineer.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.weido.engineer.pojo.*;
+import com.weido.engineer.repository.CommunityRepository;
 import com.weido.engineer.repository.EngineersRepository;
+import com.weido.engineer.repository.UserHomeRepository;
 import com.weido.engineer.repository.UserRepository;
 import com.weido.engineer.util.HttpRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,11 @@ public class EngineersController {
     @Autowired
     UserRepository userRepository;
     LinkedHashMap map = new LinkedHashMap();
+    String code = null;
+    @Autowired
+    UserHomeRepository userHomeRepository;
+    @Autowired
+    CommunityRepository communityRepository;
 
     /***
      * 登陆
@@ -45,7 +52,7 @@ public class EngineersController {
         if (engineers == null) {
             map.put("type", 0);
             map.put("msg", "用户名或密码错误");
-            if (map.containsKey("data")){
+            if (map.containsKey("data")) {
                 map.remove("data");
             }
         } else {
@@ -58,8 +65,8 @@ public class EngineersController {
             String role = JSON.toJSONString(engineers.getRoles().getRid());
             String serviceShop = JSON.toJSONString(engineers.getServiceShop().getGid());
             jsonObject1.put("birthday", simpleDateFormat.format(date));
-            jsonObject1.put("role",role);
-            jsonObject1.put("serviceShop",serviceShop);
+            jsonObject1.put("role", role);
+            jsonObject1.put("serviceShop", serviceShop);
             map.put("type", 1);
             map.put("msg", "成功");
             map.put("data", jsonObject1);
@@ -76,9 +83,9 @@ public class EngineersController {
      */
     @PostMapping(value = "/updatePng")
     public JSONObject updatePng(@RequestParam("eid") int eid,
-                          @RequestParam("headImg") MultipartFile file,
-                          HttpServletRequest request
-                          ) {
+                                @RequestParam("headImg") MultipartFile file,
+                                HttpServletRequest request
+    ) {
         try {
             String fileName = System.currentTimeMillis() + file.getOriginalFilename();
             System.err.println(fileName);
@@ -94,7 +101,7 @@ public class EngineersController {
             file.transferTo(destFile);
             engineersRepository.updatePng(destFileName, eid);
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("png",destFileName);
+            jsonObject.put("png", destFileName);
             map.put("type", 1);
             map.put("msg", "成功");
             map.put("data", jsonObject);
@@ -110,16 +117,16 @@ public class EngineersController {
      * @return
      */
     @PostMapping(value = "/my")
-    public JSONObject findUser(@RequestBody JSONObject jsonObject){
+    public JSONObject findUser(@RequestBody JSONObject jsonObject) {
         int eid = Integer.parseInt(jsonObject.get("eid").toString());
         List<Engineers> engineers = engineersRepository.findAllByEid(eid);
 
-        String json=JSON.toJSONString(engineers.get(0),SerializerFeature.WriteDateUseDateFormat);
+        String json = JSON.toJSONString(engineers.get(0), SerializerFeature.WriteDateUseDateFormat);
         System.err.println(engineers);
-        JSONObject jsonObject1=JSONObject.fromObject(json);
-        map.put("type",1);
-        map.put("msg","成功");
-        map.put("data",jsonObject1);
+        JSONObject jsonObject1 = JSONObject.fromObject(json);
+        map.put("type", 1);
+        map.put("msg", "成功");
+        map.put("data", jsonObject1);
         return JSONObject.fromObject(map);
     }
 
@@ -128,69 +135,114 @@ public class EngineersController {
      * int pid, String mobile, String uname, boolean sex, String password, Date registTime, int vipStatus, Date vipExpiration, UserHome userHome
      */
     @PostMapping(value = "/addUser")
-    public JSONObject addUser(@RequestBody JSONObject jsonObject){
-        String userName=jsonObject.get("user_name").toString();
+    public JSONObject addUser(@RequestBody JSONObject jsonObject) {
+        String userName = jsonObject.get("user_name").toString();
         Boolean sex = Boolean.valueOf(jsonObject.get("sex").toString());
-        int pid=Integer.parseInt(jsonObject.get("pid").toString());
-        String address=jsonObject.get("address").toString();
-        String phone=jsonObject.get("phone").toString();
+        String pid = jsonObject.get("pid").toString();
+        String address = jsonObject.get("address").toString();
+        String phone = jsonObject.get("phone").toString();
         int year = Integer.parseInt(jsonObject.get("vipExpiration").toString());
         int cid = Integer.parseInt(jsonObject.get("cid").toString());
+        String msg = jsonObject.get("msgCode").toString();
         String password = "123456";
-        Date date = new Date();
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
-        cal.add(Calendar.YEAR, year);//增加一年
-        Communities communities = new Communities();
-        communities.setCid(cid);
-        UserHome userHome = new UserHome("我的家",address,communities);
-        userHome.setDevs(new Devs("",""));
-        User user=new User(pid,phone,userName,sex,password,date,1,cal.getTime(), (List<UserHome>) userHome);
-        userRepository.save(user);
-        map.put("type",1);
-        map.put("msg","开通成功");
+        String codeStr = JSONObject.fromObject(code).get("code").toString();
+        if (msg.equals(codeStr)) {
+            Date date = new Date();
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+            cal.add(Calendar.YEAR, year);//增加一年
+            Communities communities = new Communities();
+            communities.setCid(cid);
+            User user = new User(pid, phone, userName, sex, password, date, 1, cal.getTime());
+            List<User> users = userRepository.findByMobile(phone);
+            if (users.size() != 0) {
+                map.put("type", 0);
+                map.put("msg", "用户已注册");
+            } else {
+                userRepository.save(user);
+                UserHome userHome = new UserHome("我的家", address, communities);
+                userHome.setUsers(user);
+                userHome.setDevs(new Devs("", ""));
+                userHomeRepository.save(userHome);
+                map.put("type", 1);
+                map.put("msg", "开通成功");
+            }
+        } else {
+            map.put("type", 0);
+            map.put("msg", "验证码错误");
+        }
+        map.put("data", "");
         return JSONObject.fromObject(map);
     }
 
     @PostMapping("/findPersonByGid")
-    public JSONObject findPersonByGid(@RequestBody JSONObject jsonObject){
+    public JSONObject findPersonByGid(@RequestBody JSONObject jsonObject) {
         int gid = Integer.parseInt(jsonObject.get("gid").toString());
         List<Engineers> engineers = engineersRepository.findAllByGid(gid);
         String engineersString = JSON.toJSONString(engineers);
-        map.put("type",1);
-        map.put("msg","成功");
-        map.put("data",engineersString);
+        map.put("type", 1);
+        map.put("msg", "成功");
+        map.put("data", engineersString);
         return JSONObject.fromObject(map);
     }
 
     @PostMapping(value = "/getMsg")
-    public JSONObject sendMsg(@RequestBody JSONObject jsonObject){
+    public JSONObject sendMsg(@RequestBody JSONObject jsonObject) {
         String mobile = jsonObject.get("mobile").toString();
-        String msg = jsonObject.get("msg").toString();
-        String code=HttpRequest.sendGet("http://www.ithaas.com/SMSDemo/interface/setTopBox/SMSACJson", "tel="+mobile);
-        System.out.println(code);
+//        String msg = jsonObject.get("msg").toString();
+        code = HttpRequest.sendGet("http://www.ithaas.com/SMSDemo/interface/setTopBox/SMSACJson", "tel=" + mobile);
         JSONObject jsonObject1 = JSONObject.fromObject(code);
-        if (msg.equals(jsonObject1.get("code"))){
-            map.put("type",1);
-            map.put("msg",jsonObject1.get("code"));
-            map.put("data","验证码验证通过");
+        System.out.println(code);
+//        if(!code.equals(null)) {
+        if (Integer.parseInt(jsonObject1.get("code").toString()) == 0) {
+            map.put("type", jsonObject1.get("code"));
+            map.put("msg", "发送频繁，请稍后再试");
+        } else {
+            map.put("type", 1);
+            map.put("msg", jsonObject1.get("message").toString());
         }
-        else {
-            if(Integer.parseInt(jsonObject1.get("code").toString())==0){
-                map.put("type",0);
-                map.put("msg","验证失败，请稍后再试");
-            }
-            else {
-                map.put("type",0);
-                map.put("msg",jsonObject1.get("message"));
-                map.put("data","验证码验证未通过");
-            }
-        }
+        map.put("data", "");
         return JSONObject.fromObject(map);
     }
 
+    @PostMapping(value = "/findCommunity")
+    public JSONObject findCommunity(@RequestBody JSONObject jsonObject) {
+        int gid = Integer.parseInt(jsonObject.get("gid").toString());
+        List<Communities> communities = communityRepository.findAllByGid(gid);
+        String json = JSON.toJSONString(communities);
+        JSONArray jsonArray = JSONArray.fromObject(json);
+        map.put("type", 1);
+        map.put("msg", "成功");
+        map.put("data", jsonArray);
+        return JSONObject.fromObject(map);
+    }
 
-
+    @PostMapping(value = "/changePwd")
+    public JSONObject changePwd(@RequestBody JSONObject jsonObject) {
+        String mobile = jsonObject.get("mobile").toString();
+        List<Engineers> engineers = engineersRepository.findAllByMobile(mobile);
+        System.out.println(engineers);
+        if (engineers.size() != 0) {
+            String msgCode = jsonObject.get("msgCode").toString();
+            String pwd = jsonObject.get("password").toString();
+            System.out.println(pwd);
+            String codeStr = JSONObject.fromObject(code).get("code").toString();
+            if (msgCode.equals(codeStr)) {
+                engineersRepository.updatePassword(mobile, pwd);
+                map.put("type", 1);
+                map.put("msg", "修改成功");
+            } else {
+                map.put("type", 0);
+                map.put("msg", "验证码错误");
+            }
+            map.put("data", "");
+        } else {
+            map.put("type",0);
+            map.put("msg","当前用户未注册");
+            map.put("data","");
+        }
+        return JSONObject.fromObject(map);
+    }
 
 
 }

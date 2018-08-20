@@ -31,6 +31,9 @@ public class Engineers {
     private Roles roles;
     @OneToOne(fetch = FetchType.EAGER)
     private EngineerToken engineerToken;
+    private Double locationLon;//经度
+    private Double locationLat;//纬度
+    private Date locationTime;
     public int getEid() {
         return eid;
     }
@@ -133,6 +136,30 @@ public class Engineers {
 
     public void setPid(String pid) {
         this.pid = pid;
+    }
+
+    public Double getLocationLon() {
+        return locationLon;
+    }
+
+    public void setLocationLon(Double locationLon) {
+        this.locationLon = locationLon;
+    }
+
+    public Double getLocationLat() {
+        return locationLat;
+    }
+
+    public void setLocationLat(Double locationLat) {
+        this.locationLat = locationLat;
+    }
+
+    public Date getLocationTime() {
+        return locationTime;
+    }
+
+    public void setLocationTime(Date locationTime) {
+        this.locationTime = locationTime;
     }
 
     public Engineers(String mobile, String password, String name, String description, boolean sex, Date birthday, String title, String photo, ServiceShop serviceShop, Roles roles) {

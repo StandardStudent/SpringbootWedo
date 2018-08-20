@@ -1,13 +1,18 @@
 package com.weido.engineer.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.weido.engineer.pojo.CommOrders;
-import com.weido.engineer.pojo.Engineers;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson.serializer.SimplePropertyPreFilter;
+import com.weido.engineer.pojo.*;
 import com.weido.engineer.repository.CommOrderRepository;
 import com.weido.engineer.repository.EngineersRepository;
+import com.weido.engineer.repository.OrderTypeRepository;
+import com.weido.engineer.repository.SeperateNumRepository;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +31,10 @@ public class OrderController {
     CommOrderRepository commOrderRepository;
     @Autowired
     EngineersRepository engineersRepository;
+    @Autowired
+    SeperateNumRepository seperateNumRepository;
+    @Autowired
+    OrderTypeRepository orderTypeRepository;
     LinkedHashMap map = new LinkedHashMap();
     LinkedHashMap datemap = new LinkedHashMap();
 
@@ -49,6 +58,7 @@ public class OrderController {
             Date lastdate = sdf.parse(last);
             List<CommOrders> week = commOrderRepository.findWMByEidAndCurrent(eid, Mondaydate, Fridaydate);
             List<CommOrders> month = commOrderRepository.findWMByEidAndCurrent(eid, firstdate, lastdate);
+            //String dayString = JSON.toJSONString(day,SerializerFeature.DisableCircularReferenceDetect);
             String dayString = JSON.toJSONString(day);
             String weekString = JSON.toJSONString(week);
             String monthString = JSON.toJSONString(month);
@@ -126,11 +136,26 @@ public class OrderController {
         int gid = Integer.parseInt(jsonObject.get("gid").toString());
         int finished = Integer.parseInt(jsonObject.get("status_id").toString());
         int order_type = Integer.parseInt(jsonObject.get("order_type").toString());
-        List<CommOrders> commOrders = commOrderRepository.findAllByEidAndGidByType(eid, gid, finished,order_type);//finished 0未接单 1已接单 2已完成
-        List<Engineers> engineers = engineersRepository.findAllByGid(gid);
+        int page = Integer.parseInt(jsonObject.get("page_no").toString());
+        int rid = Integer.parseInt(jsonObject.get("rid").toString());
+        //Pageable pageable =new PageRequest(page,1);
+        int type = Integer.parseInt(jsonObject.get("type").toString());
+        page--;
+        System.out.println(page);
+        List<CommOrders> commOrders = commOrderRepository.findAllByEidAndGidByType(eid, gid, finished,order_type,page);//finished 0未接单 1已接单 2已完成
+        //type:1分配 0转单
+        if(type==1){
+            rid--;
+        }
+        List<Engineers> engineers = engineersRepository.findAllByRidAndGid(rid,gid);
         String comm = JSON.toJSONString(commOrders);
+        System.out.println(comm);
         JSONArray jsonArray = JSONArray.fromObject(comm);
-        jsonArray.add(engineers);
+        for(int i=0;i<jsonArray.size();i++){
+            jsonArray.getJSONObject(i).put("address",commOrders.get(i).getUserHome().getAddress());
+            jsonArray.getJSONObject(i).put("order_type",commOrders.get(i).getOrderType().getOrder_type());
+            jsonArray.getJSONObject(i).put("other_engineers",JSONArray.fromObject(JSON.toJSONString(engineers)));
+        }
         map.put("type", 1);
         map.put("msg", "成功");
         map.put("data", jsonArray);
@@ -147,9 +172,23 @@ public class OrderController {
         int eid = Integer.parseInt(jsonObject.get("eid").toString());
         int gid = Integer.parseInt(jsonObject.get("gid").toString());
         int finished = Integer.parseInt(jsonObject.get("status_id").toString());
-        List<CommOrders> commOrders = commOrderRepository.findAllByEidAndGid(eid, gid, finished);//finished 0未接单 1已接单 2已完成
+        int page = Integer.parseInt(jsonObject.get("page_no").toString());
+        int rid = Integer.parseInt(jsonObject.get("rid").toString());
+        int type = Integer.parseInt(jsonObject.get("type").toString());
+        page--;
+        //type:1分配 0转单
+        if(type==1){
+            rid--;
+        }
+        List<CommOrders> commOrders = commOrderRepository.findAllByEidAndGid(eid, gid, finished,page);//finished 0未接单 1已接单 2已完成
+        List<Engineers> engineers = engineersRepository.findAllByRidAndGid(rid,gid);
         String comm = JSON.toJSONString(commOrders);
         JSONArray jsonArray = JSONArray.fromObject(comm);
+        for(int i=0;i<jsonArray.size();i++){
+             jsonArray.getJSONObject(i).put("address",commOrders.get(i).getUserHome().getAddress());
+             jsonArray.getJSONObject(i).put("order_type",commOrders.get(i).getOrderType().getOrder_type());
+             jsonArray.getJSONObject(i).put("other_engineers",JSONArray.fromObject(JSON.toJSONString(engineers)));
+        }
         map.put("type", 1);
         map.put("msg", "成功");
         map.put("data", jsonArray);
@@ -178,6 +217,56 @@ public class OrderController {
         map.put("type", 1);
         map.put("msg", "成功");
     }
+
+    @PostMapping("/getScore")
+    public JSONObject getScornByEid(@RequestBody JSONObject jsonObject){
+        int eid = Integer.parseInt(jsonObject.get("eid").toString());
+        List<Seperate> commOrders = commOrderRepository.findScoreByEid(eid);
+        List<SeperateNum> seperateNums = seperateNumRepository.findNumberByEid(eid);
+        String json = JSON.toJSONString(commOrders);
+        String json1 = JSON.toJSONString(seperateNums);
+        JSONArray jsonArray = JSONArray.fromObject(json);
+        JSONArray jsonArray1 = JSONArray.fromObject(json1);
+        JSONObject jsonObject1=new JSONObject();
+//        for(int i=0;i<seperateNums.size();i++){
+//            json1 = JSON.toJSONString(seperateNums.get(i));
+//            jsonObject1 = JSONObject.fromObject(json1);
+//            jsonArray.add(jsonObject1);
+//        }
+        jsonObject1.put("stars",jsonArray);
+        jsonObject1.put("numbers",jsonArray1);
+        map.put("type",1);
+        map.put("msg","成功");
+        map.put("data",jsonObject1);
+        return JSONObject.fromObject(map);
+    }
+
+    @PostMapping(value = "/transfer")
+    public JSONObject transfer(@RequestBody JSONObject jsonObject){
+        int eid = Integer.parseInt(jsonObject.get("eid").toString());
+        int oid = Integer.parseInt(jsonObject.get("oid").toString());
+        commOrderRepository.transfer(eid,oid);
+        map.put("type",1);
+        map.put("msg","成功");
+        map.put("data","");
+        return JSONObject.fromObject(map);
+    }
+
+    @PostMapping(value = "/saveLocation")
+    public JSONObject saveLocation(@RequestBody JSONObject jsonObject){
+        int eid = Integer.parseInt(jsonObject.get("eid").toString());
+        Double locationLon = (Double) jsonObject.get("lon");
+        Double locationLat = (Double) jsonObject.get("lat");
+        Date locationTime = new Date();
+        engineersRepository.updateLocation(locationLon,locationLat,locationTime,eid);
+        map.put("type",1);
+        map.put("msg","成功");
+        map.put("data","");
+        return JSONObject.fromObject(map);
+    }
+
+
+
 //    @PostMapping("/todayMission")
 //    public JSONObject findAllCommByEidAndGid(@RequestBody JSONObject jsonObject) {
 //

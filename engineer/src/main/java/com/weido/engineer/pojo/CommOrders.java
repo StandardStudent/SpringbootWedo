@@ -35,6 +35,10 @@ public class CommOrders {
     @JSONField(serialize = false)
     private ServiceShop serviceShop;
     private Date order_time;
+    private Date end_time;
+    private String solution;
+    private String reason;
+    private String matter;
 
     public int getOid() {
         return oid;
@@ -130,6 +134,38 @@ public class CommOrders {
 
     public void setOrder_time(Date order_time) {
         this.order_time = order_time;
+    }
+
+    public Date getEnd_time() {
+        return end_time;
+    }
+
+    public void setEnd_time(Date end_time) {
+        this.end_time = end_time;
+    }
+
+    public String getSolution() {
+        return solution;
+    }
+
+    public void setSolution(String solution) {
+        this.solution = solution;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
+    public String getMatter() {
+        return matter;
+    }
+
+    public void setMatter(String matter) {
+        this.matter = matter;
     }
 
     public CommOrders() {
