@@ -29,8 +29,6 @@ public class Engineers {
     @ManyToOne(fetch = FetchType.EAGER)
     @JSONField(serialize = false)
     private Roles roles;
-    @OneToOne(fetch = FetchType.EAGER)
-    private EngineerToken engineerToken;
     private Double locationLon;//经度
     private Double locationLat;//纬度
     private Date locationTime;
@@ -122,14 +120,6 @@ public class Engineers {
         this.roles = roles;
     }
 
-    public EngineerToken getEngineerToken() {
-        return engineerToken;
-    }
-
-    public void setEngineerToken(EngineerToken engineerToken) {
-        this.engineerToken = engineerToken;
-    }
-
     public String getPid() {
         return pid;
     }
@@ -193,7 +183,6 @@ public class Engineers {
                 ", pid=" + pid +
                 ", serviceShop=" + serviceShop +
                 ", roles=" + roles +
-                ", engineerToken=" + engineerToken +
                 '}';
     }
 }

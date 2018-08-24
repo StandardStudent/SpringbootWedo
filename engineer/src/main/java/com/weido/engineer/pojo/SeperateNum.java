@@ -6,8 +6,17 @@ import javax.persistence.Id;
 @Entity
 public class SeperateNum {
     @Id
+    private int eid;
     private int number;
     private String name;
+
+    public int getEid() {
+        return eid;
+    }
+
+    public void setEid(int eid) {
+        this.eid = eid;
+    }
 
     public int getNumber() {
         return number;

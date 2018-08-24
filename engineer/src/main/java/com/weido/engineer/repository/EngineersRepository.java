@@ -32,8 +32,8 @@ public interface EngineersRepository extends JpaRepository<Engineers,Integer> {
     @Query(value = "select e.* from engineers e where mobile=?1",nativeQuery = true)
     List<Engineers> findAllByMobile(String mobile);
 
-    @Query(value = "select e.* from engineers e where eid=?1 and roles_rid=?2",nativeQuery = true)
-    List<Engineers> findAllByRidAndGid(int eid,int rid);
+    @Query(value = "select e.* from engineers e where service_shop_gid=?2 and roles_rid=?1 and eid!=?3",nativeQuery = true)
+    List<Engineers> findAllByRidAndGid(int rid,int gid,int eid);
 
     @Transactional
     @Query(value = "update Engineers e set e.locationLon=?1,e.locationLat=?2,e.locationTime=?3 where e.eid=?4")

@@ -1,5 +1,7 @@
 package com.weido.engineer.pojo;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 import javax.persistence.*;
 
 @Entity

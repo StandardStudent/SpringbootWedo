@@ -1,8 +1,22 @@
 package com.weido.engineer.pojo;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
+@Entity
 public class Seperate {
+    @Id
+    private int eid;
     private String name;
     private String appraise_score;
+
+    public int getEid() {
+        return eid;
+    }
+
+    public void setEid(int eid) {
+        this.eid = eid;
+    }
 
     public String getName() {
         return name;

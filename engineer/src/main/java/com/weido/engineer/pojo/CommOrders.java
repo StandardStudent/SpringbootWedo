@@ -4,6 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "comm_orders")
@@ -27,9 +28,6 @@ public class CommOrders {
     private String appraise_score;
     @ManyToOne(fetch = FetchType.EAGER)
     @JSONField(serialize = false)
-    private OrderStep orderStep;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JSONField(serialize = false)
     private Engineers engineers;
     @ManyToOne(fetch = FetchType.EAGER)
     @JSONField(serialize = false)
@@ -39,6 +37,7 @@ public class CommOrders {
     private String solution;
     private String reason;
     private String matter;
+    private int late;
 
     public int getOid() {
         return oid;
@@ -112,13 +111,6 @@ public class CommOrders {
         this.appraise_score = appraise_score;
     }
 
-    public OrderStep getOrderStep() {
-        return orderStep;
-    }
-
-    public void setOrderStep(OrderStep orderStep) {
-        this.orderStep = orderStep;
-    }
 
     public Engineers getEngineers() {
         return engineers;
@@ -168,6 +160,14 @@ public class CommOrders {
         this.matter = matter;
     }
 
+    public int getLate() {
+        return late;
+    }
+
+    public void setLate(int late) {
+        this.late = late;
+    }
+
     public CommOrders() {
     }
 
@@ -179,7 +179,7 @@ public class CommOrders {
         this.serviceShop = serviceShop;
     }
 
-    public CommOrders(OrderType orderType, String description, User user, UserHome userHome, String appraise_byuser, String appraise_description, int finished, String appraise_score, OrderStep orderStep, Engineers engineers) {
+    public CommOrders(OrderType orderType, String description, User user, UserHome userHome, String appraise_byuser, String appraise_description, int finished, String appraise_score, Engineers engineers) {
         this.orderType = orderType;
         this.description = description;
         this.user = user;
@@ -188,7 +188,6 @@ public class CommOrders {
         this.appraise_description = appraise_description;
         this.finished = finished;
         this.appraise_score = appraise_score;
-        this.orderStep = orderStep;
         this.engineers = engineers;
     }
 

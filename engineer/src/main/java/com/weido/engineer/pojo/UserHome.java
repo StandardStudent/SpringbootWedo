@@ -4,6 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import org.springframework.data.repository.cdi.Eager;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -34,6 +35,10 @@ public class UserHome{
     private Communities communities;
     @OneToOne(cascade = {CascadeType.PERSIST})
     private Devs devs;
+    private Date registTime;
+    private int vipStatus;
+    private Date vipExpiration;
+    private int vipLevel;
 
     public Devs getDevs() {
         return devs;
@@ -57,6 +62,16 @@ public class UserHome{
         this.homename = homename;
         this.address = address;
         this.communities = communities;
+    }
+
+    public UserHome(String homename, String address, Communities communities, Date registTime, int vipStatus, Date vipExpiration, int vipLevel) {
+        this.homename = homename;
+        this.address = address;
+        this.communities = communities;
+        this.registTime = registTime;
+        this.vipStatus = vipStatus;
+        this.vipExpiration = vipExpiration;
+        this.vipLevel = vipLevel;
     }
 
     public UserHome(String homename, String address, int post, User users, List<UserRoom> userRooms) {
@@ -123,6 +138,37 @@ public class UserHome{
         this.post = post;
     }
 
+    public Date getRegistTime() {
+        return registTime;
+    }
+
+    public void setRegistTime(Date registTime) {
+        this.registTime = registTime;
+    }
+
+    public int getVipStatus() {
+        return vipStatus;
+    }
+
+    public void setVipStatus(int vipStatus) {
+        this.vipStatus = vipStatus;
+    }
+
+    public Date getVipExpiration() {
+        return vipExpiration;
+    }
+
+    public void setVipExpiration(Date vipExpiration) {
+        this.vipExpiration = vipExpiration;
+    }
+
+    public int getVipLevel() {
+        return vipLevel;
+    }
+
+    public void setVipLevel(int vipLevel) {
+        this.vipLevel = vipLevel;
+    }
 
 
     @Override

@@ -14,14 +14,16 @@ public class OrderStep {
     private int step_id;
     private Date acttime;
     private String description;
+    @OneToOne
+    private OrderStatus orderStatus;
     @ManyToOne(fetch = FetchType.EAGER)
     @JSONField(serialize = false)
-    private OrderStatus orderStatus;
-    @OneToMany(mappedBy = "orderStep")
-    private List<CommOrders> commOrders;
+    private CommOrders commOrder;
     @ManyToOne(fetch = FetchType.EAGER)
     @JSONField(serialize = false)
     private Engineers engineers;
+    private int late;
+
 
     public int getStep_id() {
         return step_id;
@@ -55,12 +57,12 @@ public class OrderStep {
         this.orderStatus = orderStatus;
     }
 
-    public List<CommOrders> getCommOrders() {
-        return commOrders;
+    public CommOrders getCommOrder() {
+        return commOrder;
     }
 
-    public void setCommOrders(List<CommOrders> commOrders) {
-        this.commOrders = commOrders;
+    public void setCommOrder(CommOrders commOrder) {
+        this.commOrder = commOrder;
     }
 
     public Engineers getEngineers() {
@@ -71,14 +73,29 @@ public class OrderStep {
         this.engineers = engineers;
     }
 
+    public int getLate() {
+        return late;
+    }
+
+    public void setLate(int late) {
+        this.late = late;
+    }
+
+
     public OrderStep() {
     }
 
-    public OrderStep(Date acttime, String description, OrderStatus orderStatus, List<CommOrders> commOrders, Engineers engineers) {
+    public OrderStep(Date acttime, String description, Engineers engineers) {
+        this.acttime = acttime;
+        this.description = description;
+        this.engineers = engineers;
+    }
+
+    public OrderStep(Date acttime, String description, OrderStatus orderStatus, CommOrders commOrder, Engineers engineers) {
         this.acttime = acttime;
         this.description = description;
         this.orderStatus = orderStatus;
-        this.commOrders = commOrders;
+        this.commOrder = commOrder;
         this.engineers = engineers;
     }
 
@@ -89,7 +106,6 @@ public class OrderStep {
                 ", acttime=" + acttime +
                 ", description='" + description + '\'' +
                 ", orderStatus=" + orderStatus +
-                ", commOrders=" + commOrders +
                 ", engineers=" + engineers +
                 '}';
     }

@@ -120,10 +120,11 @@ public class EngineersController {
     public JSONObject findUser(@RequestBody JSONObject jsonObject) {
         int eid = Integer.parseInt(jsonObject.get("eid").toString());
         List<Engineers> engineers = engineersRepository.findAllByEid(eid);
-
         String json = JSON.toJSONString(engineers.get(0), SerializerFeature.WriteDateUseDateFormat);
         System.err.println(engineers);
         JSONObject jsonObject1 = JSONObject.fromObject(json);
+        jsonObject1.put("serviceShopName",engineers.get(0).getServiceShop().getGname());
+        jsonObject1.put("appraise","优秀");
         map.put("type", 1);
         map.put("msg", "成功");
         map.put("data", jsonObject1);
@@ -153,14 +154,14 @@ public class EngineersController {
             cal.add(Calendar.YEAR, year);//增加一年
             Communities communities = new Communities();
             communities.setCid(cid);
-            User user = new User(pid, phone, userName, sex, password, date, 1, cal.getTime());
+            User user = new User(pid, phone, userName, sex, password);
             List<User> users = userRepository.findByMobile(phone);
             if (users.size() != 0) {
                 map.put("type", 0);
                 map.put("msg", "用户已注册");
             } else {
                 userRepository.save(user);
-                UserHome userHome = new UserHome("我的家", address, communities);
+                UserHome userHome = new UserHome("我的家", address, communities,date, 1, cal.getTime(),1);
                 userHome.setUsers(user);
                 userHome.setDevs(new Devs("", ""));
                 userHomeRepository.save(userHome);

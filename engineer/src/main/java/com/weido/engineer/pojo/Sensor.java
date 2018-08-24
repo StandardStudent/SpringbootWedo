@@ -38,7 +38,9 @@ public class Sensor {
     @ManyToOne(fetch = FetchType.EAGER)
     @JSONField(serialize = false)
     private SensorVendor sensorsVendor;
-
+    @ManyToOne
+    @JSONField(serialize = false)
+    private ScenceModel scenceModel;
     @ManyToOne
     @JSONField(serialize = false)
     private Devs devs;
@@ -128,6 +130,14 @@ public class Sensor {
 
     public void setCollectstatus(int collectstatus) {
         this.collectstatus = collectstatus;
+    }
+
+    public ScenceModel getScenceModel() {
+        return scenceModel;
+    }
+
+    public void setScenceModel(ScenceModel scenceModel) {
+        this.scenceModel = scenceModel;
     }
 
     public Sensor(String sn, String sname, int parentid, int value, String status) {

@@ -16,10 +16,7 @@ public class User {
     private boolean sex;
     private String email;
     private String password;
-    private Date registTime;
-    private int vipStatus;
-    private Date vipExpiration;
-    private int vipLevel;
+
     @OneToMany(mappedBy = "users")
     private List<UserHome> userHome;
 
@@ -79,30 +76,6 @@ public class User {
         this.password = password;
     }
 
-    public Date getRegistTime() {
-        return registTime;
-    }
-
-    public void setRegistTime(Date registTime) {
-        this.registTime = registTime;
-    }
-
-    public int getVipStatus() {
-        return vipStatus;
-    }
-
-    public void setVipStatus(int vipStatus) {
-        this.vipStatus = vipStatus;
-    }
-
-    public Date getVipExpiration() {
-        return vipExpiration;
-    }
-
-    public void setVipExpiration(Date vipExpiration) {
-        this.vipExpiration = vipExpiration;
-    }
-
     public List<UserHome> getUserHome() {
         return userHome;
     }
@@ -111,26 +84,15 @@ public class User {
         this.userHome = userHome;
     }
 
-    public int getVipLevel() {
-        return vipLevel;
-    }
-
-    public void setVipLevel(int vipLevel) {
-        this.vipLevel = vipLevel;
-    }
-
     public User() {
     }
 
-    public User(String pid, String mobile, String uname, boolean sex, String password, Date registTime, int vipStatus, Date vipExpiration) {
+    public User(String pid, String mobile, String uname, boolean sex, String password) {
         this.pid = pid;
         this.mobile = mobile;
         this.uname = uname;
         this.sex = sex;
         this.password = password;
-        this.registTime = registTime;
-        this.vipStatus = vipStatus;
-        this.vipExpiration = vipExpiration;
         this.userHome = userHome;
     }
 }
