@@ -36,8 +36,10 @@ public class CommOrders {
     private Date end_time;
     private String solution;
     private String reason;
-    private String matter;
     private int late;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JSONField(serialize = false)
+    private Fault fault;
 
     public int getOid() {
         return oid;
@@ -152,12 +154,12 @@ public class CommOrders {
         this.reason = reason;
     }
 
-    public String getMatter() {
-        return matter;
+    public Fault getFault() {
+        return fault;
     }
 
-    public void setMatter(String matter) {
-        this.matter = matter;
+    public void setFault(Fault fault) {
+        this.fault = fault;
     }
 
     public int getLate() {

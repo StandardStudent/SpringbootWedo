@@ -7,13 +7,13 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-@Table(name = "sensors_alert")
+@Table(name = "order_alert")
 public class OrderAlert {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int alert_id;
-    @OneToOne(mappedBy = "orderAlert",fetch = FetchType.EAGER)
-    private SensorLog sensorLogs;
+//    @OneToOne
+//    private SensorLog sensorLogs;
     @ManyToOne(fetch = FetchType.EAGER)
     @JSONField(serialize = false)
     private User user;
@@ -27,13 +27,13 @@ public class OrderAlert {
         this.alert_id = alert_id;
     }
 
-    public SensorLog getSensorLogs() {
-        return sensorLogs;
-    }
-
-    public void setSensorLogs(SensorLog sensorLogs) {
-        this.sensorLogs = sensorLogs;
-    }
+//    public SensorLog getSensorLogs() {
+//        return sensorLogs;
+//    }
+//
+//    public void setSensorLogs(SensorLog sensorLogs) {
+//        this.sensorLogs = sensorLogs;
+//    }
 
     public User getUser() {
         return user;
@@ -55,7 +55,7 @@ public class OrderAlert {
     }
 
     public OrderAlert(SensorLog sensorLogs, User user, boolean finished) {
-        this.sensorLogs = sensorLogs;
+//        this.sensorLogs = sensorLogs;
         this.user = user;
         this.finished = finished;
     }
@@ -64,7 +64,7 @@ public class OrderAlert {
     public String toString() {
         return "OrderAlert{" +
                 "alert_id=" + alert_id +
-                ", sensorLogs=" + sensorLogs +
+//                ", sensorLogs=" + sensorLogs +
                 ", user=" + user +
                 ", finished=" + finished +
                 '}';

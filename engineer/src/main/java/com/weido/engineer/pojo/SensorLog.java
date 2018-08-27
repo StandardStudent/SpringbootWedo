@@ -25,7 +25,7 @@ public class SensorLog {
     @ManyToOne(fetch = FetchType.EAGER)
     @JSONField(serialize = false)
     private Sensor sensors;
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne
     private OrderAlert orderAlert;
     public SensorLog() {
     }

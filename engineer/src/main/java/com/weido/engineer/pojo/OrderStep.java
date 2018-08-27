@@ -99,6 +99,15 @@ public class OrderStep {
         this.engineers = engineers;
     }
 
+    public OrderStep(Date acttime, String description, OrderStatus orderStatus, CommOrders commOrder, Engineers engineers, int late) {
+        this.acttime = acttime;
+        this.description = description;
+        this.orderStatus = orderStatus;
+        this.commOrder = commOrder;
+        this.engineers = engineers;
+        this.late = late;
+    }
+
     @Override
     public String toString() {
         return "OrderStep{" +

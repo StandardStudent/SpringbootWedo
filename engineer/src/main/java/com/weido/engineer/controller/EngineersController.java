@@ -125,6 +125,7 @@ public class EngineersController {
         JSONObject jsonObject1 = JSONObject.fromObject(json);
         jsonObject1.put("serviceShopName",engineers.get(0).getServiceShop().getGname());
         jsonObject1.put("appraise","优秀");
+        //jsonObject1.put("fault",engineers.get(0).);
         map.put("type", 1);
         map.put("msg", "成功");
         map.put("data", jsonObject1);
@@ -244,6 +245,8 @@ public class EngineersController {
         }
         return JSONObject.fromObject(map);
     }
+
+
 
 
 }
