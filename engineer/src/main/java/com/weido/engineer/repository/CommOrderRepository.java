@@ -82,8 +82,12 @@ public interface CommOrderRepository extends JpaRepository<CommOrders,Integer> {
             "and ?2<=c.finished<3 and to_days(order_time)= to_days(now());",nativeQuery = true)
     int findCountByEidAndFinished(int eid,int finished);
 
-    @Query(value = "select c.* from comm_orders c,engineers e where e.eid=?4 and c.late=?1 and order_time between ?2 and DATE_ADD(?3,INTERVAL 1 DAY)",nativeQuery = true)
-    List<CommOrders> findAllBylate(int late,Date Monday,Date Friday,int eid);
+    @Query(value = "select count(*) from comm_orders c where c.engineers_eid=?1 " +
+            "and c.finished=1",nativeQuery = true)
+    int findtodayWorking(int eid);
+
+    @Query(value = "select c.* from comm_orders c,engineers e where e.eid=?4 and c.late=?1 and order_time between ?2 and DATE_ADD(?3,INTERVAL 1 DAY) limit ?5,20",nativeQuery = true)
+    List<CommOrders> findAllBylate(int late,Date Monday,Date Friday,int eid,int page);
 
     @Transactional
     @Query(value = "update comm_orders set finished=?1 where oid=?2",nativeQuery = true)
@@ -132,4 +136,13 @@ public interface CommOrderRepository extends JpaRepository<CommOrders,Integer> {
     @Query(value = "update comm_orders set late = 1 where oid=?1",nativeQuery = true)
     @Modifying
     void updateCommLate(int oid);
+
+    @Query(value = "select c.* from comm_orders c where service_shop_gid=1",nativeQuery = true)
+    List<CommOrders> findAllCommOderByGid();
+
+    @Query(value = "select c.* from comm_orders c group by fault_faultid",nativeQuery = true)
+    List<CommOrders> findAllByFault();
+
+    @Query(value = "select count(*) from comm_orders c group by fault_faultid",nativeQuery = true)
+    List findCountByFault();
 }

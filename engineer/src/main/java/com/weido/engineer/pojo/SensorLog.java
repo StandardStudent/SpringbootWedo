@@ -25,8 +25,6 @@ public class SensorLog {
     @ManyToOne(fetch = FetchType.EAGER)
     @JSONField(serialize = false)
     private Sensor sensors;
-    @OneToOne
-    private OrderAlert orderAlert;
     public SensorLog() {
     }
 
@@ -87,11 +85,4 @@ public class SensorLog {
         this.log_time = log_time;
     }
 
-    public OrderAlert getOrderAlert() {
-        return orderAlert;
-    }
-
-    public void setOrderAlert(OrderAlert orderAlert) {
-        this.orderAlert = orderAlert;
-    }
 }

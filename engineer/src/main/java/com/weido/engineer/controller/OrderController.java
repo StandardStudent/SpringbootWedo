@@ -7,13 +7,13 @@ import com.weido.engineer.pojo.*;
 import com.weido.engineer.repository.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import net.sf.json.JsonConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -54,6 +54,7 @@ public class OrderController {
         List<CommOrders> week, month;
         JSONObject jsonObject1;
         String orderSize, giveSize, daySize;
+        JsonConfig jsonConfig = new JsonConfig();
         try {
             eid = Integer.parseInt(jsonObject.get("eid").toString());
             List<CommOrders> day = commOrderRepository.findAllByEidAndCurrentTime(eid);
@@ -72,9 +73,10 @@ public class OrderController {
             jsonObject1.put("orderSize", Integer.parseInt(JSONObject.fromObject(orderSize).get("count").toString()));
             jsonObject1.put("giveSize", Integer.parseInt(JSONObject.fromObject(giveSize).get("count").toString()));
             jsonObject1.put("daySize", Integer.parseInt(JSONObject.fromObject(daySize).get("count").toString()));
+            jsonObject1.put("todayWorking", commOrderRepository.findtodayWorking(eid));
             map.put("type", 1);
             map.put("msg", "成功");
-            map.put("data", jsonObject1);
+            map.put("data", JSONObject.fromObject(JSON.toJSONString(jsonObject1)));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -99,7 +101,7 @@ public class OrderController {
         page = (page - 1) * 20;
         System.out.println(page);
         List<CommOrders> commOrders = commOrderRepository.findAllByEidAndGidByType(eid, gid, finished, order_type, page);//finished 0未接单 1已接单 2已完成
-
+        int strStartIndex,strEndIndex;
         //type:1分配 0转单
         if (type == 1) {
             rid--;
@@ -125,8 +127,20 @@ public class OrderController {
             if (steps.size() != 0) {
                 steps2 = (JSONObject) steps.getJSONObject(0).get("orderStatus");
             }
-            jsonArray.getJSONObject(i).put("address", commOrders.get(i).getUserHome().getCommunities().getCities().getCity_name()
-                    +"-"+commOrders.get(i).getUserHome().getCommunities().getName());
+            jsonArray.getJSONObject(i).put("community", commOrders.get(i).getUserHome().getCommunities().getName());
+            jsonArray.getJSONObject(i).put("address", commOrders.get(i).getUserHome().getCommunities().getLocation()
+                    +commOrders.get(i).getUserHome().getAddress());
+            //      jsonArray.getJSONObject(i).put("city", commOrders.get(i).getUserHome().getCommunities().getLocation().toString().);
+            strEndIndex = commOrders.get(i).getUserHome().getCommunities().getLocation().indexOf("市");
+            if(commOrders.get(i).getUserHome().getCommunities().getLocation().contains("省")){
+                strStartIndex = commOrders.get(i).getUserHome().getCommunities().getLocation().indexOf("省");
+                jsonArray.getJSONObject(i).put("city", commOrders.get(i).getUserHome().getCommunities()
+                        .getName().substring(strStartIndex,strEndIndex));
+            }
+            else {
+                jsonArray.getJSONObject(i).put("city", commOrders.get(i).getUserHome().getCommunities()
+                        .getName().substring(0,strEndIndex));
+            }
             jsonArray.getJSONObject(i).put("order_type", commOrders.get(i).getOrderType().getOrder_type());
             jsonArray.getJSONObject(i).put("step", steps2.get("status_id"));
             if (commOrders.get(i).getEngineers() == null) {
@@ -156,7 +170,7 @@ public class OrderController {
      */
     @PostMapping("/findAllComm")
     public JSONObject findAllComm(@RequestBody JSONObject jsonObject) {
-        int eid, order_type, gid, finished, page, rid, type;
+        int eid, order_type, gid, finished, page, rid,type,strStartIndex,strEndIndex;
         JSONArray jsonArray;
         JSONObject jsonObject2 = new JSONObject();
         eid = Integer.parseInt(jsonObject.get("eid").toString());
@@ -177,7 +191,7 @@ public class OrderController {
         } else if (jsonObject.containsKey("late") && !jsonObject.get("late").toString().equals("")) {
             try {
                 commOrders = commOrderRepository.findAllBylate(Integer.parseInt(jsonObject.get("late").toString())
-                        , getWeekMonday(), getWeekFriday(),eid);
+                        , getWeekMonday(), getWeekFriday(),eid,page);
                 jsonObject2.put("weekDelay", commOrders.size());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -213,8 +227,20 @@ public class OrderController {
                 steps2 = (JSONObject) steps.getJSONObject(0).get("orderStatus");
                 acttime = steps.getJSONObject(0);
             }
-            jsonArray.getJSONObject(i).put("address", commOrders.get(i).getUserHome().getCommunities().getCities().getCity_name()
-                    +"-"+commOrders.get(i).getUserHome().getCommunities().getName());
+            jsonArray.getJSONObject(i).put("community", commOrders.get(i).getUserHome().getCommunities().getName());
+            jsonArray.getJSONObject(i).put("address", commOrders.get(i).getUserHome().getCommunities().getLocation()
+                    +commOrders.get(i).getUserHome().getAddress());
+      //      jsonArray.getJSONObject(i).put("city", commOrders.get(i).getUserHome().getCommunities().getLocation().toString().);
+            strEndIndex = commOrders.get(i).getUserHome().getCommunities().getLocation().indexOf("市");
+            if(commOrders.get(i).getUserHome().getCommunities().getLocation().contains("省")){
+                strStartIndex = commOrders.get(i).getUserHome().getCommunities().getLocation().indexOf("省");
+                jsonArray.getJSONObject(i).put("city", commOrders.get(i).getUserHome().getCommunities()
+                        .getName().substring(strStartIndex,strEndIndex));
+            }
+            else {
+                jsonArray.getJSONObject(i).put("city", commOrders.get(i).getUserHome().getCommunities()
+                        .getName().substring(0,strEndIndex));
+            }
             jsonArray.getJSONObject(i).put("order_type", commOrders.get(i).getOrderType().getOrder_type());
             jsonArray.getJSONObject(i).put("user_name", commOrders.get(i).getUser().getUname());
             jsonArray.getJSONObject(i).put("user_phone", commOrders.get(i).getUser().getMobile());
@@ -289,27 +315,6 @@ public class OrderController {
                 orderStep = new OrderStep(acttime,
                         jsonObject.get("description").toString(), orderStatus1, commOrders, engineers);
             }
-            //JSONArray jsonArray = JSONArray.fromObject(JSON.toJSONString(orderSteps));
-//            if(finished==1&&status_id!=4){
-//                if (status_id==3){
-//                    List<OrderStep> orderSteps = orderStepRepository.findAllByOidAndEidAndStatusId(oid,eid,status_id-2);
-//                    try {
-//                        String time = sdf.format(orderSteps.get(0).getActtime());
-//                        Date steps = sdf.parse(time);
-//                        long diff = date.getTime()-steps.getTime();
-//                        long second = diff/1000;
-//                        long firstSecond = 5*60;
-//                        if(second>firstSecond){
-//                            orderStepRepository.updateLate(eid, status_id, oid);
-//                            commOrderRepository.updateCommLate(oid);
-//                        }
-//
-//                    } catch (ParseException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//                orderSteps.get(0).getActtime();
-//            }
             orderStepRepository.save(orderStep);
             commOrderRepository.changeFinished(oid, finished);
         }
@@ -320,7 +325,7 @@ public class OrderController {
     }
 
     @PostMapping("/getScore")
-    public JSONObject getScornByEid(@RequestBody JSONObject jsonObject) {
+    public JSONObject getScoreByEid(@RequestBody JSONObject jsonObject) {
         int eid = Integer.parseInt(jsonObject.get("eid").toString());
         int gid = Integer.parseInt(jsonObject.get("gid").toString());
         int role = Integer.parseInt(jsonObject.get("role").toString());
@@ -338,15 +343,31 @@ public class OrderController {
         JSONArray allNumberArray = JSONArray.fromObject(JSON.toJSONString(seperateNums1));
         sort(allNumberArray, "number", false);
         if (allStarArray.size() < 10) {
+            allStarArray.add( myjsonstars);
+            allStarArray.add( myjsonstars);
+            allStarArray.add( myjsonstars);
+            allStarArray.add( myjsonstars);
+            allStarArray.add( myjsonstars);
+            allStarArray.add( myjsonstars);
+            allStarArray.add( myjsonstars);
+            allStarArray.add( myjsonstars);
+            seperateNums1.add(seperateNums);
+            seperateNums1.add(seperateNums);
+            seperateNums1.add(seperateNums);
+            seperateNums1.add(seperateNums);
+            seperateNums1.add(seperateNums);
+            seperateNums1.add(seperateNums);
+            seperateNums1.add(seperateNums);
+            seperateNums1.add(seperateNums);
             for (int i = 0; i < allStarArray.size(); i++) {
-                int score = Integer.parseInt(allStarArray.getJSONObject(i).get("appraise_score").toString());
+                Double score = Double.parseDouble(allStarArray.getJSONObject(i).get("appraise_score").toString());
                 allStarArray.getJSONObject(i).put("appraise_score", (score / 3) + "");
             }
             mapObject.put("stars", allStarArray);
             mapObject.put("number", seperateNums1);
         } else {
             for (int i = 0; i < 10; i++) {
-                int score = Integer.parseInt(allStarArray.getJSONObject(i).get("appraise_score").toString());
+                Double score = Double.parseDouble(allStarArray.getJSONObject(i).get("appraise_score").toString());
                 allStarArray.getJSONObject(i).put("appraise_score", score / 3 + "");
                 if (Integer.parseInt(allStarArray.getJSONObject(i).get("eid").toString()) == eid) {
                     flag = true;
@@ -355,6 +376,7 @@ public class OrderController {
                 }
             }
             if (flag == false) {
+
                 allStarArray.set(9, myjsonstars);
                 allNumberArray.set(9, myjsonnumber);
             }
@@ -441,25 +463,38 @@ public class OrderController {
         return jsonObject1;
     }
 
-//    /**
-//     * 每秒刷新更新late（未用到）
-//     * @param jsonObject
-//     */
-//    @PostMapping(value = "/updateLate")
-//    public void updateLate(@RequestBody JSONObject jsonObject){
-//       int step_id = Integer.parseInt(jsonObject.get("step_id").toString());
-//       int status_id = Integer.parseInt(jsonObject.get("order_status_status_id").toString());
-//       int oid = Integer.parseInt(jsonObject.get("comm_order_oid").toString());
-//       int eid = Integer.parseInt(jsonObject.get("engineers_eid").toString());
-//       int finished = Integer.parseInt(jsonObject.get("finished").toString());
-//       int late = Integer.parseInt(jsonObject.get("late").toString());
-//       if (late==1) {
-//           if (finished == 0 || finished == 1) {
-//               commOrderRepository.updateCommLate(oid);
-//           }
-//           orderStepRepository.updateLate(step_id, status_id, oid, eid);
-//       }
-//    }
+    /**
+     * 每秒刷新更新late（未用到）
+     * @param jsonObject
+     */
+    @PostMapping(value = "/updateLate")
+    @CrossOrigin
+    public void updateLate(@RequestBody JSONObject jsonObject){
+       JSONArray jsonArray = (JSONArray) jsonObject.get("data");
+       int step1,step2,step3,step4;
+       for(int i=0;i<jsonArray.size();i++){
+           step1 = Integer.parseInt(jsonArray.getJSONObject(i).get("step1_timeout").toString());
+           step2 = Integer.parseInt(jsonArray.getJSONObject(i).get("step2_timeout").toString());
+           step3 = Integer.parseInt(jsonArray.getJSONObject(i).get("step3_timeout").toString());
+           step4 = Integer.parseInt(jsonArray.getJSONObject(i).get("step4_timeout").toString());
+           if (step1==1){
+               orderStepRepository.updateLate(Integer.parseInt(jsonArray.getJSONObject(i).get("step_id").toString()),
+                       Integer.parseInt(jsonArray.getJSONObject(i).get("eid").toString()), 1);
+           }else if (step2==1){
+               commOrderRepository.updateCommLate(Integer.parseInt(jsonArray.getJSONObject(i).get("oid").toString()));
+               orderStepRepository.updateLate(Integer.parseInt(jsonArray.getJSONObject(i).get("step_id").toString()),
+                       Integer.parseInt(jsonArray.getJSONObject(i).get("eid").toString()),1);
+           }else if (step3==1){
+               commOrderRepository.updateCommLate(Integer.parseInt(jsonArray.getJSONObject(i).get("oid").toString()));
+               orderStepRepository.updateLate(Integer.parseInt(jsonArray.getJSONObject(i).get("step_id").toString()),
+                       Integer.parseInt(jsonArray.getJSONObject(i).get("eid").toString()),3);
+           }else if (step4==1){
+               commOrderRepository.updateCommLate(Integer.parseInt(jsonArray.getJSONObject(i).get("oid").toString()));
+               orderStepRepository.updateLate(Integer.parseInt(jsonArray.getJSONObject(i).get("step_id").toString()),
+                       Integer.parseInt(jsonArray.getJSONObject(i).get("eid").toString()),4);
+           }
+       }
+    }
 
 
 
@@ -554,6 +589,120 @@ public class OrderController {
         if (!isAsc) {
             Collections.reverse(ja);
         }
+    }
+    @GetMapping(value = "/findAllCommOder")
+    @CrossOrigin
+    public JSONObject findAllCommOder(){
+        List<CommOrders> commOrders = commOrderRepository.findAll();
+        JSONArray jsonArray = JSONArray.fromObject(JSON.toJSONString(commOrders));
+        JSONArray jsonArray1 = new JSONArray();
+        JSONObject jsonObject = new JSONObject();
+        for(int i=jsonArray.size()-1;i>0;i--){
+            jsonObject.put("type",commOrders.get(i).getOrderType().getOrder_type());
+            jsonObject.put("start_time",sdf.format(commOrders.get(i).getOrder_time().getTime()));
+            jsonObject.put("engineers",commOrders.get(i).getEngineers().getName());
+            jsonObject.put("fault",commOrders.get(i).getFault().getFaultname());
+            jsonObject.put("end_time",sdf.format(commOrders.get(i).getEnd_time().getTime()));
+            jsonArray1.add(jsonObject);
+        }
+        map.put("type",1);
+        map.put("msg","成功");
+        map.put("data", jsonArray1);
+        return JSONObject.fromObject(map);
+    }
+
+//    @PostMapping(value = "/findAllCommOderByCity")
+//    public JSONObject findAllCommOderByCity(@RequestBody JSONObject jsonObject){
+//        String city = jsonObject.get("city").toString();
+//        commOderRepository
+////        List<CommOrders> commOrders = commOderRepository.findAll();
+////        JSONArray jsonArray = JSONArray.fromObject(JSON.toJSONString(commOrders));
+////        JSONArray jsonArray1 = new JSONArray();
+////        JSONObject jsonObject = new JSONObject();
+////        for(int i=jsonArray.size()-1;i>0;i--){
+////            jsonObject.put("type",commOrders.get(i).getOrderType().getOrder_type());
+////            jsonObject.put("start_time",sdf.format(commOrders.get(i).getOrder_time().getTime()));
+////            jsonObject.put("engineers",commOrders.get(i).getEngineers().getName());
+////            jsonObject.put("end_time",sdf.format(commOrders.get(i).getEnd_time().getTime()));
+////            jsonArray1.add(jsonObject);
+////        }
+//        map.put("type",1);
+//        map.put("msg","成功");
+//        map.put("data", jsonArray1);
+//        return JSONObject.fromObject(map);
+//    }
+
+    @GetMapping(value = "/findAllGroupByFault")
+    @CrossOrigin
+    public JSONObject findAllGroupByFault(){
+        List<CommOrders> commOrders = commOrderRepository.findAllByFault();
+        List countList=commOrderRepository.findCountByFault();
+        JSONObject jsonObject = new JSONObject();
+        JSONArray jsonArray1 = new JSONArray();
+        JSONArray jsonArray2 = new JSONArray();
+        JSONArray jsonArray = new JSONArray();
+        for (int i=0;i<commOrders.size();i++){
+            jsonArray1.add(commOrders.get(i).getFault().getFaultname());
+            jsonArray2.add(countList.get(i));
+        }
+        jsonObject.put("type",jsonArray1);
+        jsonObject.put("count",jsonArray2);
+        jsonArray.add(jsonObject);
+        map.put("type",1);
+        map.put("msg","成功");
+        map.put("data",jsonArray);
+        return JSONObject.fromObject(map);
+    }
+
+    @GetMapping(value = "/findAllGroupByTime")
+    @CrossOrigin
+    public JSONObject findAllGroupByTime(){
+        List<CommOrders> commOrders = commOrderRepository.findAllByFault();
+        List countList=commOrderRepository.findCountByFault();
+        JSONObject jsonObject = new JSONObject();
+        JSONArray jsonArray1 = new JSONArray();
+        JSONArray jsonArray2 = new JSONArray();
+        JSONArray jsonArray = new JSONArray();
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+        for (int i=0;i<commOrders.size();i++){
+            jsonArray1.add(sdf.format(commOrders.get(i).getOrder_time().getTime()));
+            jsonArray2.add(countList.get(i));
+        }
+        jsonObject.put("time",jsonArray1);
+        jsonObject.put("count",jsonArray2);
+        jsonArray.add(jsonObject);
+        map.put("type",1);
+        map.put("msg","成功");
+        map.put("data",jsonArray);
+        return JSONObject.fromObject(map);
+    }
+    @GetMapping(value = "/findPercent")
+    @CrossOrigin
+    public JSONObject findPercent(){
+        List<CommOrders> commOrders = commOrderRepository.findAllByFault();
+        List countList=commOrderRepository.findCountByFault();
+        NumberFormat percentFormat =NumberFormat.getPercentInstance();
+        percentFormat.setMaximumFractionDigits(1);
+        JSONObject jsonObject = new JSONObject();
+        JSONArray jsonArray1 = new JSONArray();
+        JSONArray jsonArray2 = new JSONArray();
+        JSONArray jsonArray = new JSONArray();
+        int sum=0;
+        for(int j=0;j<commOrders.size();j++){
+            sum=sum+Integer.parseInt(countList.get(j).toString());
+        }
+        System.out.println(sum);
+        for (int i=0;i<commOrders.size();i++){
+            jsonArray1.add(commOrders.get(i).getFault().getFaultname());
+            jsonArray2.add((Double.parseDouble(countList.get(i).toString())/sum)*100);
+        }
+        jsonObject.put("type",jsonArray1);
+        jsonObject.put("count",jsonArray2);
+        jsonArray.add(jsonObject);
+        map.put("type",1);
+        map.put("msg","成功");
+        map.put("data",jsonArray);
+        return JSONObject.fromObject(map);
     }
 
 }

@@ -158,17 +158,21 @@ public class EngineersController {
             User user = new User(pid, phone, userName, sex, password);
             List<User> users = userRepository.findByMobile(phone);
             if (users.size() != 0) {
-                map.put("type", 0);
-                map.put("msg", "用户已注册");
+                UserHome userHome = new UserHome("我的家", address, communities,date, 1, cal.getTime(),1);
+                User user1 = new User();
+                user1.setUid(users.get(0).getUid());
+                userHome.setUsers(user1);
+                userHome.setDevs(new Devs("", ""));
+                userHomeRepository.save(userHome);
             } else {
                 userRepository.save(user);
                 UserHome userHome = new UserHome("我的家", address, communities,date, 1, cal.getTime(),1);
                 userHome.setUsers(user);
                 userHome.setDevs(new Devs("", ""));
                 userHomeRepository.save(userHome);
-                map.put("type", 1);
-                map.put("msg", "开通成功");
             }
+            map.put("type", 1);
+            map.put("msg", "开通成功");
         } else {
             map.put("type", 0);
             map.put("msg", "验证码错误");

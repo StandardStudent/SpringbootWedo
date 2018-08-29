@@ -17,7 +17,7 @@ public class User {
     private String email;
     private String password;
 
-    @OneToMany(mappedBy = "users")
+    @OneToMany(mappedBy = "users",cascade = CascadeType.PERSIST)
     private List<UserHome> userHome;
 
     public int getUid() {
