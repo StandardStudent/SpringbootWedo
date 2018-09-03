@@ -40,6 +40,15 @@ public class CommOrders {
     @ManyToOne(fetch = FetchType.EAGER)
     @JSONField(serialize = false)
     private Fault fault;
+    private @Transient int count;
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
 
     public int getOid() {
         return oid;
@@ -207,4 +216,5 @@ public class CommOrders {
                 ", appraise_score='" + appraise_score + '\'' +
                 '}';
     }
+
 }

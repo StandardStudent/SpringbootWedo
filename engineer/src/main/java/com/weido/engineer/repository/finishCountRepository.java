@@ -16,6 +16,11 @@ public interface finishCountRepository extends JpaRepository<finishCount,Integer
             "where engineers_eid=?1 and finished=?2",nativeQuery = true)
     finishCount findCountByEid(int eid,int finished);
 
+    @Query(value = "select count(*) as count,c.finished from comm_orders c " +
+            "where engineers_eid is null and finished=?1 and order_type_order_type=?2 " +
+            "and service_shop_gid=?3",nativeQuery = true)
+    finishCount findCountByNull(int finished,int oder_type,int gid);
+
     @Query(value = "select count(*) as count,c.finished as finished from comm_orders c " +
             "where finished=?1",nativeQuery = true)
     finishCount findCountByFinished(int finished);

@@ -23,7 +23,7 @@ public class HttpRequest {
     public static String sendGet(String url, String param) {
         String result = "";
         BufferedReader in = null;
-        Map<String, List<String>> map = new LinkedHashMap<>();
+        Map<String, List<String>> map;
         try {
             String urlNameString = url + "?" + param;
             URL realUrl = new URL(urlNameString);

@@ -21,9 +21,26 @@ public interface CommOrderRepository extends JpaRepository<CommOrders,Integer> {
 
 
     @Query(value = "select c.* from comm_orders c,service_shop shop " +
-            "where engineers_eid=?1 and shop.gid=?2 and c.finished=?3 and order_type_order_type=?4 limit ?5,20"
+            "where (engineers_eid=?1 or engineers_eid is null)  and shop.gid=?2 and c.finished=?3 and order_type_order_type<=?4 limit ?5,20"
             ,nativeQuery = true)
     List<CommOrders> findAllByEidAndGidByType(int eid,int gid,int status_id,int order_type,int page_no);
+
+    @Query(value = "select c.* from comm_orders c,service_shop shop " +
+            "where (engineers_eid=?1 or engineers_eid is null)  and shop.gid=?2 and c.finished=?3 and order_type_order_type=?4 limit ?5,20"
+            ,nativeQuery = true)
+    List<CommOrders> findOderTypeByEidAndGidByType(int eid,int gid,int status_id,int order_type,int page_no);
+
+
+    @Query(value = "select c.* from comm_orders c,service_shop shop " +
+            "where engineers_eid=?1 and shop.gid=?2 and c.finished=?3 and order_type_order_type=?4 limit ?5,20"
+            ,nativeQuery = true)
+    List<CommOrders> findOrderTypeNotNull(int eid,int gid,int status_id,int order_type,int page_no);
+
+    @Query(value = "select c.*" +
+            " from comm_orders c,service_shop shop " +
+            "where engineers_eid IS NULL and shop.gid=?1 and c.finished=?2 and order_type_order_type=?3"
+            ,nativeQuery = true)
+    List<CommOrders> findAllByEIDNUll(int gid,int status_id,int order_type);
 
     @Query(value = "select c.* from comm_orders c,service_shop shop " +
             "where engineers_eid=?1 and c.finished=?2",nativeQuery = true)
@@ -53,19 +70,19 @@ public interface CommOrderRepository extends JpaRepository<CommOrders,Integer> {
     List<CommOrders> findRangByEidAndGid(int eid,int gid,int status_id,int page);
 
     @Transactional
-    @Query(value = "update comm_orders set finished=?2 where oid=?1",nativeQuery = true)
+    @Query(value = "update comm_orders set finished=?2,engineers_eid=?3 where oid=?1",nativeQuery = true)
     @Modifying
-    void changeFinished(int oid,int finished);
+    void changeFinished(int oid,int finished,int eid);
 
     @Transactional
     @Query(value = "update comm_orders c,order_step o " +
-            "set c.finished=?2 and o.engineers_eid=?3 where oid=?1",nativeQuery = true)
+            "set c.finished=?2,o.engineers_eid=?3 where oid=?1",nativeQuery = true)
     @Modifying
     void changeStep(int oid,int finished,int eid);
 
 
     @Transactional
-    @Query(value = "update comm_orders set engineers_eid = ?1 where oid=?2",nativeQuery = true)
+    @Query(value = "update comm_orders set engineers_eid = ?1,transfer=1 where oid=?2",nativeQuery = true)
     @Modifying
     void transfer(int eid,int oid);
 
@@ -86,7 +103,7 @@ public interface CommOrderRepository extends JpaRepository<CommOrders,Integer> {
             "and c.finished=1",nativeQuery = true)
     int findtodayWorking(int eid);
 
-    @Query(value = "select c.* from comm_orders c,engineers e where e.eid=?4 and c.late=?1 and order_time between ?2 and DATE_ADD(?3,INTERVAL 1 DAY) limit ?5,20",nativeQuery = true)
+    @Query(value = "select c.* from comm_orders c where c.engineers_eid=?4 and c.late=?1 and order_time between ?2 and DATE_ADD(?3,INTERVAL 1 DAY) limit ?5,20",nativeQuery = true)
     List<CommOrders> findAllBylate(int late,Date Monday,Date Friday,int eid,int page);
 
     @Transactional
@@ -140,9 +157,13 @@ public interface CommOrderRepository extends JpaRepository<CommOrders,Integer> {
     @Query(value = "select c.* from comm_orders c where service_shop_gid=1",nativeQuery = true)
     List<CommOrders> findAllCommOderByGid();
 
-    @Query(value = "select c.* from comm_orders c group by fault_faultid",nativeQuery = true)
-    List<CommOrders> findAllByFault();
+    @Query(value = "select c.* from comm_orders c where fault_faultid=?1",nativeQuery = true)
+    List<CommOrders> findAllByFault(int fault);
 
-    @Query(value = "select count(*) from comm_orders c group by fault_faultid",nativeQuery = true)
-    List findCountByFault();
+//    @Query(value = "select c.fault_faultid,c.fault_fault_name,count(c.fault_faultid) " +
+//            "from comm_orders c,fault f GROUP BY c.fault_faultid",nativeQuery = true)
+//    List<> findCountByFault();
+
+    @Query(value = "select c.* from comm_orders c where oid=?1",nativeQuery = true)
+    List<CommOrders> findAllByCommOder(int oid);
 }

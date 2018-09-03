@@ -168,6 +168,11 @@ public class Engineers {
     public Engineers() {
     }
 
+
+    public Engineers(int eid) {
+        this.eid = eid;
+    }
+
     @Override
     public String toString() {
         return "Engineers{" +

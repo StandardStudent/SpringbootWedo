@@ -3,10 +3,7 @@ package com.weido.engineer.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.weido.engineer.pojo.*;
-import com.weido.engineer.repository.CommunityRepository;
-import com.weido.engineer.repository.EngineersRepository;
-import com.weido.engineer.repository.UserHomeRepository;
-import com.weido.engineer.repository.UserRepository;
+import com.weido.engineer.repository.*;
 import com.weido.engineer.util.HttpRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
@@ -23,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -38,6 +36,9 @@ public class EngineersController {
     UserHomeRepository userHomeRepository;
     @Autowired
     CommunityRepository communityRepository;
+
+    @Autowired
+    UserRoomRepository userRoomRepository;
 
     /***
      * 登陆
@@ -86,29 +87,32 @@ public class EngineersController {
                                 @RequestParam("headImg") MultipartFile file,
                                 HttpServletRequest request
     ) {
-        try {
-            String fileName = System.currentTimeMillis() + file.getOriginalFilename();
-            System.err.println(fileName);
-            List<Engineers> engineers = engineersRepository.findAllByEid(eid);
-            String destFileName = request.getServletContext().getRealPath("")
-                    + engineers.get(0).getMobile() + File.separator + fileName;
-            System.err.println(destFileName);
-            File destFile = new File(destFileName);
-            System.err.println(destFile);
-            if (!destFile.getParentFile().exists()) {
-                destFile.getParentFile().mkdir();
-            }
-            file.transferTo(destFile);
-            engineersRepository.updatePng(destFileName, eid);
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("png", destFileName);
-            map.put("type", 1);
-            map.put("msg", "成功");
-            map.put("data", jsonObject);
-        } catch (Exception e) {
-            e.printStackTrace();
+        String sonPath = "/usr/local/tomcat8/webapps/engineer/img/";
+        // 获取文件名
+        String fileName = file.getOriginalFilename();
+        String filePath = sonPath;
+        File dest = new File(filePath + fileName);
+        String imgPath = (sonPath + fileName);
+        String imPath1 = ("/engineer/img/" + fileName);
+        // 检测是否存在目录
+        if (!dest.getParentFile().exists()) {
+            //假如文件不存在即重新创建新的文件已防止异常发生
+            dest.getParentFile().mkdirs();
         }
-        return JSONObject.fromObject(map);
+        try {
+            file.transferTo(dest);
+            engineersRepository.updatePng(imPath1, eid);
+            JSONObject jsonObject1 = new JSONObject();
+            jsonObject1.put("png", imPath1);
+            map.put("type", 1);
+            map.put("data", jsonObject1);
+            return JSONObject.fromObject(map);
+        } catch (Exception e) {
+            map.put("type", 1);
+            map.put("msg", "上传失败");
+            return JSONObject.fromObject(map);
+        }
+
     }
 
     /***
@@ -148,6 +152,7 @@ public class EngineersController {
         String msg = jsonObject.get("msgCode").toString();
         String password = "123456";
         String codeStr = JSONObject.fromObject(code).get("code").toString();
+        UserHome userHome;
         if (msg.equals(codeStr)) {
             Date date = new Date();
             Calendar cal = Calendar.getInstance();
@@ -157,20 +162,19 @@ public class EngineersController {
             communities.setCid(cid);
             User user = new User(pid, phone, userName, sex, password);
             List<User> users = userRepository.findByMobile(phone);
+            userHome = new UserHome("我的家", address, communities,date, 1, cal.getTime(),1);
             if (users.size() != 0) {
-                UserHome userHome = new UserHome("我的家", address, communities,date, 1, cal.getTime(),1);
                 User user1 = new User();
                 user1.setUid(users.get(0).getUid());
                 userHome.setUsers(user1);
-                userHome.setDevs(new Devs("", ""));
-                userHomeRepository.save(userHome);
             } else {
                 userRepository.save(user);
-                UserHome userHome = new UserHome("我的家", address, communities,date, 1, cal.getTime(),1);
+                userHome = new UserHome("我的家", address, communities,date, 1, cal.getTime(),1);
                 userHome.setUsers(user);
-                userHome.setDevs(new Devs("", ""));
-                userHomeRepository.save(userHome);
             }
+            userHome.setDevs(new Devs("", ""));
+            userHomeRepository.save(userHome);
+            userRoomRepository.addRoom("默认房间",0,"",userHome.getHomeid());
             map.put("type", 1);
             map.put("msg", "开通成功");
         } else {

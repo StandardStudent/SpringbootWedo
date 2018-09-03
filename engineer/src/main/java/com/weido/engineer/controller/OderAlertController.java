@@ -26,10 +26,5 @@ public class OderAlertController {
         if (findId!=null){
             orderAlertRepository.changeFinishedByAlertId(Integer.parseInt(findId));
         }
-        //        for(int i=0;i<sensorLogs.size();i++){
-//            int alert_id=sensorLogs.get(0).getOrderAlert().getAlert_id();
-//            System.out.println(alert_id);
-
-//        }
     }
 }
