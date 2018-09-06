@@ -75,4 +75,10 @@ public class ScenceModel {
     public void setAction(String action) {
         this.action = action;
     }
+
+    public ScenceModel(String scenceName, int msgStatus, String action) {
+        this.scenceName = scenceName;
+        this.msgStatus = msgStatus;
+        this.action = action;
+    }
 }

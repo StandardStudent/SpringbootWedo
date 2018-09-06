@@ -1,5 +1,7 @@
 package com.weido.engineer.pojo;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 import javax.persistence.*;
 import java.util.List;
 
@@ -10,8 +12,8 @@ public class OrderType {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int order_type;
     private String ot_name;
-    @OneToMany(mappedBy = "orderType",fetch = FetchType.EAGER)
-    private List<CommOrders> commOrders;
+//    @OneToMany(mappedBy = "orderType",fetch = FetchType.EAGER)
+//    private List<CommOrders> commOrders;
 
     public int getOrder_type() {
         return order_type;
@@ -29,13 +31,13 @@ public class OrderType {
         this.ot_name = ot_name;
     }
 
-    public List<CommOrders> getCommOrders() {
-        return commOrders;
-    }
-
-    public void setCommOrders(List<CommOrders> commOrders) {
-        this.commOrders = commOrders;
-    }
+//    public List<CommOrders> getCommOrders() {
+//        return commOrders;
+//    }
+//
+//    public void setCommOrders(List<CommOrders> commOrders) {
+//        this.commOrders = commOrders;
+//    }
 
     public OrderType() {
     }
@@ -47,7 +49,7 @@ public class OrderType {
         return "OrderType{" +
                 "order_type=" + order_type +
                 ", ot_name='" + ot_name + '\'' +
-                ", commOrders=" + commOrders +
+//                ", commOrders=" + commOrders +
                 '}';
     }
 }

@@ -7,10 +7,7 @@ import com.weido.engineer.repository.*;
 import com.weido.engineer.util.HttpRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,6 +33,8 @@ public class EngineersController {
     UserHomeRepository userHomeRepository;
     @Autowired
     CommunityRepository communityRepository;
+    @Autowired
+    ScenceModelRepository scenceModelRepository;
 
     @Autowired
     UserRoomRepository userRoomRepository;
@@ -169,11 +168,14 @@ public class EngineersController {
                 userHome.setUsers(user1);
             } else {
                 userRepository.save(user);
-                userHome = new UserHome("我的家", address, communities,date, 1, cal.getTime(),1);
+                //userHome = new UserHome("我的家", address, communities,date, 1, cal.getTime(),1);
                 userHome.setUsers(user);
             }
             userHome.setDevs(new Devs("", ""));
             userHomeRepository.save(userHome);
+            ScenceModel scenceModel = new ScenceModel("默认模式", 1, "0");
+            scenceModel.setUserHome(userHome);
+            scenceModelRepository.save(scenceModel);
             userRoomRepository.addRoom("默认房间",0,"",userHome.getHomeid());
             map.put("type", 1);
             map.put("msg", "开通成功");
@@ -251,6 +253,21 @@ public class EngineersController {
             map.put("msg","当前用户未注册");
             map.put("data","");
         }
+        return JSONObject.fromObject(map);
+    }
+
+    @GetMapping("/updateVersion")
+    public JSONObject updateVersion(){
+        int versionCode = 2;
+        String versionName = "2.0";
+        String url = "http://192.168.200.109/app/download/1.apk";
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("versionCode",versionCode);
+        jsonObject.put("versionName",versionName);
+        jsonObject.put("url",url);
+        map.put("type",1);
+        map.put("msg","成功");
+        map.put("data",jsonObject);
         return JSONObject.fromObject(map);
     }
 

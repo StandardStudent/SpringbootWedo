@@ -10,6 +10,7 @@ import com.weido.engineer.util.dataUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JsonConfig;
+import net.sf.json.util.JSONUtils;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_10;
 import org.java_websocket.drafts.Draft_17;
@@ -126,6 +127,7 @@ public class OrderController {
         System.out.println(page);
         List<CommOrders> commOrders;
         if (order_type == 4) {
+            order_type = 1;
             commOrders = commOrderRepository.findOrderTypeNotNull(eid, gid, finished, order_type, page);//finished 0未接单 1已接单 2已完成
         } else {
             commOrders = commOrderRepository.findOderTypeByEidAndGidByType(eid, gid, finished, order_type, page);//finished 0未接单 1已接单 2已完成
@@ -134,7 +136,7 @@ public class OrderController {
         jsonArray = JSONArray.fromObject(comm);
         int strStartIndex, strEndIndex;
         //type:1分配 0转单
-        if (type == 1) {
+        if (rid > 1) {
             rid--;
         }
         JSONObject steps2 = new JSONObject();
@@ -233,7 +235,7 @@ public class OrderController {
             }
         }
         //type:1分配 0其他情况
-        if (type == 1) {
+        if (rid > 1) {
             rid--;
         }
         String comm = JSON.toJSONString(commOrders);
@@ -315,6 +317,7 @@ public class OrderController {
             commOrderRepository.changeStep(oid, finished, eid);//finished 0未接单 1已接单 2已完成非评分 3已完成
             orderStep = new OrderStep(acttime, "工单已转接", orderStatus1, commOrders, engineers);
             orderStepRepository.save(orderStep);
+            commOrderRepository.changeFinished(oid, finished, eid);
         } else {
             if (jsonObject.get("description").toString().equals("")) {
                 orderStep = new OrderStep(acttime, "", orderStatus1, commOrders, engineers);
@@ -326,18 +329,18 @@ public class OrderController {
 
             orderStepRepository.save(orderStep);
             commOrderRepository.changeFinished(oid, finished, eid);
-            if (finished == 2) {
-                List<CommOrders> commOder = commOrderRepository.findAllByCommOder(oid);
-                jsonObject.put("address", commOder.get(0).getUserHome().getAddress());
-                jsonObject.put("name", commOder.get(0).getUser().getUname());
-                jsonObject.put("mobile", commOder.get(0).getUser().getMobile());
-                jsonObject.put("oid", commOder.get(0).getOid());
-                jsonObject.put("order_type", commOder.get(0).getOrderType().getOt_name());
-                jsonObject.put("finished", 2);
-                jsonObject.put("uname", commOder.get(0).getEngineers().getName());
-                jsonObject.put("to", "ghn");
-                webSocket(jsonObject);
-            }
+//            if (finished == 2) {
+//                List<CommOrders> commOder = commOrderRepository.findAllByCommOder(oid);
+//                jsonObject.put("address", commOder.get(0).getUserHome().getAddress());
+//                jsonObject.put("name", commOder.get(0).getUser().getUname());
+//                jsonObject.put("mobile", commOder.get(0).getUser().getMobile());
+//                jsonObject.put("oid", commOder.get(0).getOid());
+//                jsonObject.put("order_type", commOder.get(0).getOrderType().getOt_name());
+//                jsonObject.put("finished", 2);
+//                jsonObject.put("uname", commOder.get(0).getEngineers().getName());
+//                jsonObject.put("to", "ghn");
+//                //webSocket(jsonObject);
+//            }
         }
         map.put("type", 1);
         map.put("msg", "更改步骤成功");
@@ -357,28 +360,36 @@ public class OrderController {
         //够且当前工程是没有在前十
         Seperate mycommOrders = seperateRepository.findScoreByEid(eid, 2);
         List<Seperate> commOrders = seperateRepository.findScoreByGid(gid, 2, role);
-        JSONObject myjsonstars = JSONObject.fromObject(JSON.toJSONString(mycommOrders));
-        JSONArray allStarArray = JSONArray.fromObject(JSON.toJSONString(commOrders));
+        JSONObject myjsonstars = JSONObject.fromObject(JSON.toJSONString(mycommOrders, SerializerFeature.WriteNullNumberAsZero));
+        JSONArray allStarArray = JSONArray.fromObject(JSON.toJSONString(commOrders, SerializerFeature.WriteNullNumberAsZero));
         SeperateNum seperateNums = seperateNumRepository.findNumberByEid(eid, 2);
-        JSONObject myjsonnumber = JSONObject.fromObject(JSON.toJSONString(seperateNums));
+        JSONObject myjsonnumber = JSONObject.fromObject(JSON.toJSONString(seperateNums, SerializerFeature.WriteNullNumberAsZero));
         List<SeperateNum> seperateNums1 = seperateNumRepository.findNumberByGid(gid, 2, role);
-        JSONArray allNumberArray = JSONArray.fromObject(JSON.toJSONString(seperateNums1));
+        JSONArray allNumberArray = JSONArray.fromObject(JSON.toJSONString(seperateNums1, SerializerFeature.WriteNullNumberAsZero));
         sort(allNumberArray, "number", false);
         if (allStarArray.size() <= 10) {
             for (int i = 0; i < allStarArray.size(); i++) {
-                Double score = Double.parseDouble(allStarArray.getJSONObject(i).get("appraise_score").toString());
-                allStarArray.getJSONObject(i).put("appraise_score", (score / 3) + "");
+                if (allStarArray.getJSONObject(i).get("appraise_score") != null) {
+                    Double score = Double.parseDouble(allStarArray.getJSONObject(i).get("appraise_score").toString());
+                    allStarArray.getJSONObject(i).put("appraise_score", (score / 3) + "");
+                } else {
+                    allStarArray.getJSONObject(i).put("appraise_score", "0");
+                }
             }
             mapObject.put("stars", allStarArray);
             mapObject.put("number", seperateNums1);
         } else {
             for (int i = 0; i < 10; i++) {
-                Double score = Double.parseDouble(allStarArray.getJSONObject(i).get("appraise_score").toString());
-                allStarArray.getJSONObject(i).put("appraise_score", score / 3 + "");
-                if (Integer.parseInt(allStarArray.getJSONObject(i).get("eid").toString()) == eid) {
-                    flag = true;
+                if (allStarArray.getJSONObject(i).get("appraise_score") != null) {
+                    Double score = Double.parseDouble(allStarArray.getJSONObject(i).get("appraise_score").toString());
+                    allStarArray.getJSONObject(i).put("appraise_score", score / 3 + "");
+                    if (Integer.parseInt(allStarArray.getJSONObject(i).get("eid").toString()) == eid) {
+                        flag = true;
+                    } else {
+                        flag = false;
+                    }
                 } else {
-                    flag = false;
+                    allStarArray.getJSONObject(i).put("appraise_score", "0");
                 }
             }
             if (flag == false) {
@@ -415,9 +426,10 @@ public class OrderController {
         OrderStep orderStep = new OrderStep(date, "转单给" + orderSteps.get(0).getEngineers().getName(),
                 orderStatus, commOrders, engineers, 0);
         orderStepRepository.save(orderStep);
-        jsonObject1.put("to", engineersRepository.findAllByEid(origin));
-        jsonObject1.put("msg", engineersRepository.findAllByEid(eid) + "转单给你");
-        webSocket(jsonObject1);
+//        jsonObject1.put("to", engineersRepository.findAllByEid(origin).get(0).getMobile());
+//        jsonObject1.put("msg", engineersRepository.findAllByEid(eid).get(0).getName() + "转单给你");
+//        //JsonUtils.getLoginSocket("engineer");
+//        webSocket(jsonObject1);
         map.put("type", 1);
         map.put("msg", "分配成功");
         map.put("data", "");
@@ -437,44 +449,107 @@ public class OrderController {
         return JSONObject.fromObject(map);
     }
 
-    @PostMapping(value = "/was1/wdhome/zhinengjia/addhome")
-    public JSONObject addHome(@RequestBody JSONObject jsonObject) {
-        String mobile = jsonObject.get("mobile").toString();
-        int uid = userRepository.selectById(mobile);
-        String homename = jsonObject.get("homename").toString();
-        String address = jsonObject.get("address").toString();
-        User user = new User();
-        user.setUid(uid);
-        UserHome userHome = new UserHome();
-        userHome.setHomename(homename);
-        userHome.setAddress(address);
-        userHome.setUsers(user);
-        userHome.setDevs(new Devs("", ""));
-        userHomeRepository.save(userHome);
-        List<UserHome> userHomes = userHomeRepository.findAllByhomeId(uid);
-        System.err.println(JSON.toJSONString(userHomes));
-        userRoomRepository.addRoom("默认房间", 0, "", userHomes.get(userHomes.size() - 1).getHomeid());
-        UserHome userHome1 = new UserHome();
-        userHome1.setHomeid(userHomes.get(userHomes.size() - 1).getHomeid());
-        ScenceModel scenceModel = new ScenceModel();
-        scenceModel.setUserHome(userHome1);
-        scenceModel.setScenceName("默认模式");
-        scenceModel.setMsgStatus(0);
-        scenceModel.setAction("");
-        scenceModelRepository.save(scenceModel);
-        List<ScenceModel> scenceModels = scenceModelRepository.findAll();
-        List<UserRoom> userRooms = userRoomRepository.findAll();
-        JSONObject jsonObject2 = new JSONObject();
-        jsonObject2.put("homeid", userHomes.get(userHomes.size() - 1).getHomeid());
-        jsonObject2.put("roomid", userRooms.get(userRooms.size() - 1).getRoomid());
-        jsonObject2.put("smid", scenceModels.get(scenceModels.size() - 1).getSmid());
-        LinkedHashMap map = new LinkedHashMap();
+    @PostMapping(value = "/findCommByOid")
+    public JSONObject findCommByOid(@RequestBody JSONObject jsonObject) {
+        int oid = (int) jsonObject.get("oid");
+        List<CommOrders> commOrders = commOrderRepository.findAllByCommOder(oid);
+        int strStartIndex, strEndIndex,rid=1;
+        JSONArray jsonArray = new JSONArray();
+        JSONObject steps2 = new JSONObject();
+        JSONObject acttime = new JSONObject();
+        //for (int i = 0; i < jsonArray.size(); i++) {
+        String comm = JSON.toJSONString(commOrders);
+        jsonArray = JSONArray.fromObject(comm);
+        if(null!=commOrders.get(0).getEngineers()&&commOrders.get(0).getEngineers().getRoles().getRid()>1){
+            rid = commOrders.get(0).getEngineers().getRoles().getRid()-1;
+        }
+        List<Engineers> engineers = engineersRepository.findAllByRidAndGid(
+                rid,
+                commOrders.get(0).getServiceShop().getGid(),
+                commOrders.get(0).getEngineers().getEid());
+        JSONArray steps = JSONArray.fromObject(JSON.toJSONString(
+                orderStepRepository.findAllByOidAndEid(commOrders.get(0).getOid())));
+        if (steps.size() != 0) {
+            steps2 = (JSONObject) steps.getJSONObject(0).get("orderStatus");
+            acttime = steps.getJSONObject(0);
+        }
+        System.out.println(commOrders.get(0));
+        jsonArray.getJSONObject(0).put("community", commOrders.get(0).getUserHome().getCommunities().getName());
+        jsonArray.getJSONObject(0).put("address", commOrders.get(0).getUserHome().getCommunities().getLocation()
+                + commOrders.get(0).getUserHome().getAddress());
+        strEndIndex = commOrders.get(0).getUserHome().getCommunities().getLocation().indexOf("市");
+        if (commOrders.get(0).getUserHome().getCommunities().getLocation().contains("省")) {
+            strStartIndex = commOrders.get(0).getUserHome().getCommunities().getLocation().indexOf("省");
+            jsonArray.getJSONObject(0).put("city", commOrders.get(0).getUserHome().getCommunities()
+                    .getName().substring(strStartIndex, strEndIndex) + "市");
+        } else {
+            jsonArray.getJSONObject(0).put("city", commOrders.get(0).getUserHome().getCommunities()
+                    .getName().substring(0, strEndIndex) + "市");
+        }
+        jsonArray.getJSONObject(0).put("order_type", commOrders.get(0).getOrderType().getOrder_type());
+        jsonArray.getJSONObject(0).put("user_name", commOrders.get(0).getUser().getUname());
+        jsonArray.getJSONObject(0).put("user_phone", commOrders.get(0).getUser().getMobile());
+        jsonArray.getJSONObject(0).put("step", steps2.get("status_id"));
+        jsonArray.getJSONObject(0).put("matter", commOrders.get(0).getFault().getFaultname());
+        jsonArray.getJSONObject(0).put("history", JSONArray.fromObject(JSON.toJSONString(orderStepRepository.
+                findAllStepByOid(commOrders.get(0).getOid()), SerializerFeature.DisableCircularReferenceDetect)));
+        if (acttime.containsKey("acttime")) {
+            jsonArray.getJSONObject(0).put("acttime", acttime.get("acttime"));
+        } else {
+            jsonArray.getJSONObject(0).put("acttime", 0);
+        }
+        if (commOrders.get(0).getEngineers() == null) {
+            jsonArray.getJSONObject(0).put("engineer_name", "");
+        } else {
+            jsonArray.getJSONObject(0).put("engineer_name", commOrders.get(0).getEngineers().getName());
+        }
+        jsonArray.getJSONObject(0).put("other_engineers", JSONArray.fromObject(JSON.toJSONString(engineers)));
+        //}
         map.put("type", 1);
-        map.put("msg", "正常");
-        map.put("data", jsonObject2);
-        JSONObject jsonObject1 = JSONObject.fromObject(map);
-        return jsonObject1;
+        map.put("msg", "成功");
+        map.put("data", jsonArray.get(0));
+        return JSONObject.fromObject(map);
     }
+
+//    @PostMapping(value = "/was1/wdhome/zhinengjia/addhome")
+//    public JSONObject addHome(@RequestBody JSONObject jsonObject) {
+//        String mobile = jsonObject.get("mobile").toString();
+//        int uid = userRepository.selectById(mobile);
+//        String homename = jsonObject.get("homename").toString();
+//        String address = jsonObject.get("address").toString();
+//        User user = new User();
+//        user.setUid(uid);
+//        UserHome userHome = new UserHome();
+//        userHome.setHomename(homename);
+//        userHome.setAddress(address);
+//        userHome.setUsers(user);
+//        userHome.setDevs(new Devs("", ""));
+//        userHomeRepository.save(userHome);
+//        List<UserHome> userHomes = userHomeRepository.findAllByhomeId(uid);
+//        System.err.println(JSON.toJSONString(userHomes));
+//        userRoomRepository.addRoom("默认房间", 0, "", userHomes.get(userHomes.size() - 1).getHomeid());
+//        UserHome userHome1 = new UserHome();
+//        userHome1.setHomeid(userHomes.get(userHomes.size() - 1).getHomeid());
+//        ScenceModel scenceModel = new ScenceModel();
+//        scenceModel.setUserHome(userHome1);
+//        scenceModel.setScenceName("默认模式");
+//        scenceModel.setMsgStatus(0);
+//        scenceModel.setAction("");
+//        scenceModelRepository.save(scenceModel);
+//        List<ScenceModel> scenceModels = scenceModelRepository.findAll();
+//        List<UserRoom> userRooms = userRoomRepository.findAll();
+//        JSONObject jsonObject2 = new JSONObject();
+//        jsonObject2.put("homeid", userHomes.get(userHomes.size() - 1).getHomeid());
+//        jsonObject2.put("roomid", userRooms.get(userRooms.size() - 1).getRoomid());
+//        jsonObject2.put("smid", scenceModels.get(scenceModels.size() - 1).getSmid());
+//        LinkedHashMap map = new LinkedHashMap();
+//        map.put("type", 1);
+//        map.put("msg", "正常");
+//        map.put("data", jsonObject2);
+//        JSONObject jsonObject1 = JSONObject.fromObject(map);
+//        return jsonObject1;
+//    }
+
 
     /**
      * 每秒刷新更新late（未用到）
@@ -587,9 +662,10 @@ public class OrderController {
         JSONArray jsonArray = JSONArray.fromObject(JSON.toJSONString(commOrders));
         JSONArray jsonArray1 = new JSONArray();
         JSONObject jsonObject = new JSONObject();
-        for (int i = jsonArray.size() - 1; i > 0; i--) {
+        SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        for (int i = jsonArray.size() - 1; i >= 0; i--) {
             jsonObject.put("type", commOrders.get(i).getOrderType().getOrder_type());
-            jsonObject.put("start_time", sdf.format(commOrders.get(i).getOrder_time().getTime()));
+            jsonObject.put("start_time", sf.format(commOrders.get(i).getOrder_time().getTime()));
             if (commOrders.get(i).getEngineers() != null) {
                 jsonObject.put("engineers", commOrders.get(i).getEngineers().getName());
             } else {
@@ -597,7 +673,7 @@ public class OrderController {
             }
             jsonObject.put("fault", commOrders.get(i).getFault().getFaultname());
             if (commOrders.get(i).getEnd_time() != null) {
-                jsonObject.put("end_time", sdf.format(commOrders.get(i).getEnd_time().getTime()));
+                jsonObject.put("end_time", sf.format(commOrders.get(i).getEnd_time().getTime()));
             } else {
                 jsonObject.put("end_time", "正在处理中");
             }
@@ -712,14 +788,14 @@ public class OrderController {
         openJson.put("type", "logon");
         openJson.put("time", new Date());
         openJson.put("version", "1.0");
-        openJson.put("from", message.get("mobile").toString());
-        openJson.put("fname", message.get("mobile").toString());
+        openJson.put("from", "engineer");
+        openJson.put("fname", "engineer");
         openJson.put("to", "logon");
         openJson.put("tname", "logon");
         JSONObject openJsonObject = new JSONObject();
-        openJsonObject.put("name", message.get("mobile").toString());
+        openJsonObject.put("name", "engineer");
         openJsonObject.put("type", "add");
-        openJsonObject.put("uid", message.get("mobile").toString());
+        openJsonObject.put("uid", "engineer");
         openJsonObject.put("token", "system");
         openJson.put("logon", openJsonObject);
         /***
@@ -729,11 +805,11 @@ public class OrderController {
         MsgJson.put("wstype", "info");
         MsgJson.put("type", "invite");
         MsgJson.put("version", "1.0");
-        MsgJson.put("from", message.get("mobile").toString());
+        MsgJson.put("from", "engineer");
         MsgJson.put("tname", message.get("to").toString());
         MsgJson.put("to", message.get("to").toString());
         JSONObject info = new JSONObject();
-        info.put("content", message);
+        info.put("content", message.get("msg").toString());
 // info.put("homename", homename);
         MsgJson.put("info", info);
 // 所有连接协议
@@ -743,12 +819,13 @@ public class OrderController {
                 new DraftInfo("Draft_76", new Draft_76()),
                 new DraftInfo("Draft_75", new Draft_75())};
         selectDraft = draftInfos[0];
-        client = new WebSocketClient(new URI("ws://182.48.106.64:18000"), selectDraft.draft) {
+        client = new WebSocketClient(new URI("ws://192.168.200.104:8080"), selectDraft.draft) {
             @Override
             public void onOpen(final ServerHandshake serverHandshakeData) {
 
                 System.out.println("wlf：" + "已经连接到服务器【" + getURI() + "】");
-                send(JsonUtils.getLoginSocket("engineer")); //认证：自己的手机号 uid：自己的手机号
+                send(openJson.toString()); //认证：自己的手机号 uid：自己的手机号
+                //FORM:自己的手机号，tname：别人的手机号 to：别人的手机号);
             }
 
             @Override
@@ -770,7 +847,9 @@ public class OrderController {
 
         };
         client.connect();
-        Thread.sleep(1000);
-        client.send(MsgJson.toString()); //FORM:自己的手机号，tname：别人的手机号 to：别人的手机号);
+        Thread.sleep(2000);
+        client.send(MsgJson.toString());
+       // Thread.sleep(1000);
+
     }
 }
